@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<style>
+:root{
+  --bg:#ffffff; --fg:#1d2023; --muted:#5d646b; --line:#e1e4e7; --line-strong:#b9bfc5; --panel:#f6f7f8;
+  --k1-bg:#efedfb; --k1-bd:#7a6fd0; --k1-fg:#3a3285;
+  --k2-bg:#fbf1df; --k2-bd:#c18a2a; --k2-fg:#6b4508;
+  --k3-bg:#e4f4ef; --k3-bd:#2f9a7c; --k3-fg:#0d4e3e;
+  --k4-bg:#f3f4f5; --k4-bd:#a3a9af; --k4-fg:#2c3136;
+  --warn:#b4322a; --warn-bg:#fbeceb; --ok:#2d7a43; --ok-bg:#e8f4ec; --focus:#3a63c9;
+  --f-display:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root{
+  --bg:#16181b; --fg:#e6e8ea; --muted:#9aa1a8; --line:#2c3035; --line-strong:#4a5057; --panel:#1e2125;
+  --k1-bg:#2a2650; --k1-bd:#9a90ec; --k1-fg:#dcd8fb;
+  --k2-bg:#3a2c12; --k2-bd:#d9a24a; --k2-fg:#f6dfb4;
+  --k3-bg:#123a30; --k3-bd:#4cc19f; --k3-fg:#c4eee1;
+  --k4-bg:#24282c; --k4-bd:#6b7279; --k4-fg:#dfe2e5;
+  --warn:#f08a80; --warn-bg:#3d1c1a; --ok:#6fcf8a; --ok-bg:#16301f; --focus:#8aa8f0; color-scheme:dark }}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5}
+[hidden]{display:none!important}
+.wrap{max-width:1320px;margin:0 auto;padding:24px 16px 48px;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-direction:column;gap:6px}
+h1{font-family:var(--f-display);font-weight:600;font-size:26px;line-height:1.2;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:18px;margin:0}
+.lede{color:var(--muted);margin:0;max-width:72ch}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{font:inherit;font-size:13px;color:var(--fg);background:var(--bg);border:1px solid var(--line-strong);border-radius:4px;padding:5px 10px;cursor:pointer}
+.btn:hover{background:var(--panel)}
+.btn.primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn:focus-visible,.blk:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.btn:disabled{opacity:.45;cursor:default}
+.pill{font-size:12px;font-weight:500;border-radius:999px;padding:2px 10px;border:1px solid}
+.pill.ok{color:var(--ok);background:var(--ok-bg);border-color:var(--ok)}
+.pill.bad{color:var(--warn);background:var(--warn-bg);border-color:var(--warn)}
+.pill.wait{color:var(--muted);background:var(--bg);border-color:var(--line-strong)}
+.spacer{flex:1}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:10px;border-radius:2px;border:1px solid;display:inline-block}
+.sw.k1{background:var(--k1-bg);border-color:var(--k1-bd)} .sw.k2{background:var(--k2-bg);border-color:var(--k2-bd)}
+.sw.k3{background:var(--k3-bg);border-color:var(--k3-bd)} .sw.k4{background:var(--k4-bg);border-color:var(--k4-bd)}
+.sw.later{border-style:dashed;border-color:var(--line-strong)}
+.scroller{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+.board{min-width:1180px;display:grid;grid-template-columns:96px minmax(0,1fr)}
+.cols{display:grid;grid-template-columns:repeat(10,minmax(0,1fr)) minmax(0,1.2fr)}
+.corner{border-bottom:1px solid var(--line)}
+.weeks{grid-column:2;display:grid;grid-template-columns:5fr 5fr 1.2fr;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
+.weeks div{padding:6px 8px;letter-spacing:.04em;text-transform:uppercase}
+.weeks div+div{border-left:2px solid var(--line-strong)}
+.hd{border-bottom:1px solid var(--line)}
+.hd>div{padding:8px 8px 7px;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:2px;min-width:0}
+.hd .day{font-weight:600;font-size:13px}
+.hd .day b{font-weight:400;color:var(--muted);margin-left:4px;font-variant-numeric:tabular-nums}
+.hd .ms{font-size:11px;color:var(--muted);line-height:1.3}
+.hd .ms.key{color:var(--k1-fg);font-weight:500}
+.wk2{border-left:2px solid var(--line-strong)!important}
+.lat{background:var(--panel);border-left:2px solid var(--line-strong)!important}
+.who{padding:10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.who strong{font-weight:600}
+.who small{color:var(--muted);font-size:11px}
+.lane{position:relative;border-top:1px solid var(--line);min-height:84px}
+.bg{position:absolute;inset:0}
+.bg>div{border-left:1px solid var(--line)}
+.items{position:relative;grid-auto-flow:row dense;row-gap:6px;padding-block:8px}
+.blk{margin:0 4px;text-align:left;font:inherit;font-size:12.5px;line-height:1.3;border:1px solid;border-radius:4px;padding:6px 8px 7px;cursor:grab;touch-action:none;min-width:0;overflow-wrap:anywhere;display:flex;flex-direction:column;gap:2px;user-select:none;-webkit-user-select:none}
+.blk .tk{font-family:var(--f-mono);font-size:10.5px;opacity:.85}
+.blk.k1{background:var(--k1-bg);border-color:var(--k1-bd);color:var(--k1-fg)}
+.blk.k2{background:var(--k2-bg);border-color:var(--k2-bd);color:var(--k2-fg)}
+.blk.k3{background:var(--k3-bg);border-color:var(--k3-bd);color:var(--k3-fg)}
+.blk.k4{background:var(--k4-bg);border-color:var(--k4-bd);color:var(--k4-fg)}
+.blk.later{background:var(--bg);border-style:dashed;border-color:var(--line-strong);color:var(--muted)}
+.blk.conflict{box-shadow:inset 0 0 0 2px var(--warn)}
+.blk .flag{color:var(--warn);font-weight:600;font-size:11px}
+.blk.sel{outline:2px solid var(--focus);outline-offset:1px}
+.blk.dragging{opacity:.35;cursor:grabbing}
+.ghost{position:absolute;top:5px;bottom:5px;border:2px dashed var(--focus);border-radius:5px;pointer-events:none}
+.lower{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+@media (max-width:820px){.lower{grid-template-columns:minmax(0,1fr)}}
+.card{border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.detail .meta{color:var(--muted);font-size:13px}
+.detail .note{margin:0;max-width:65ch}
+.ctrls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ctrls label{font-size:13px;color:var(--muted)}
+select,input[type=password],input[type=text]{font:inherit;font-size:13px;color:var(--fg);background:var(--bg);border:1px solid var(--line-strong);border-radius:4px;padding:5px 8px}
+.hint{font-size:12px;color:var(--muted);margin:0}
+.err{font-size:13px;color:var(--warn);margin:0}
+.deps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.deps li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:7px 0;border-top:1px solid var(--line);font-size:13px}
+.deps li:first-child{border-top:0}
+.deps .why{grid-column:1;color:var(--muted);font-size:12px}
+.deps .st{grid-row:1 / span 2;grid-column:2;align-self:center}
+.deps .bad-row .st{color:var(--warn)}
+.deps .ok-row .st{color:var(--ok)}
+textarea{width:100%;min-height:160px;font-family:var(--f-mono);font-size:12px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px}
+.gate{max-width:420px;margin:12vh auto 0;display:flex;flex-direction:column;gap:12px}
+.gate form{display:flex;gap:8px;flex-wrap:wrap}
+.gate input{flex:1;min-width:200px}
+details summary{cursor:pointer;font-family:var(--f-display);font-weight:600;font-size:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="gate card" id="gate" hidden>
+    <h1>Plan</h1>
+    <p class="hint">Enter the code. This browser remembers it.</p>
+    <form id="gateForm">
+      <label for="codeIn" class="hint" hidden>Code</label>
+      <input id="codeIn" type="password" autocomplete="current-password" placeholder="Code" required>
+      <button class="btn primary" type="submit">Open</button>
+    </form>
+    <p class="err" id="gateErr" hidden></p>
+  </section>
+
+  <section class="card" id="setupMsg" hidden>
+    <h2>Almost ready</h2>
+    <p>Set <code>SUPABASE_URL</code> and <code>SUPABASE_KEY</code> near the top of the script, then reload.</p>
+  </section>
+
+  <div id="app" hidden style="display:flex;flex-direction:column;gap:18px">
+    <header>
+      <h1 id="title">Plan</h1>
+      <p class="lede">Drag a block to another day or person, or select it and use the arrow keys (Shift with arrows changes its length). Dependencies are checked as you move things. Changes are saved for the whole team and appear for everyone within a few seconds.</p>
+    </header>
+
+    <div class="toolbar">
+      <span id="status" class="pill ok">All dependencies hold</span>
+      <span id="live" class="pill wait">Connecting…</span>
+      <span class="spacer"></span>
+      <button class="btn" id="copyBtn" type="button">Copy as text</button>
+      <button class="btn" id="resetBtn" type="button">Undo all moves</button>
+    </div>
+
+    <div class="legend" aria-label="Legend">
+      <span id="cats" style="display:contents"></span>
+      <span><i class="sw later"></i>Later or parked</span>
+      <span style="color:var(--warn)">Red outline: a dependency is broken</span>
+    </div>
+
+    <div class="scroller"><div class="board" id="board"></div></div>
+
+    <div class="lower">
+      <section class="card detail" id="detail" aria-live="polite"></section>
+      <section class="card">
+        <h2>Dependencies</h2>
+        <ul class="deps" id="deps"></ul>
+      </section>
+    </div>
+    <textarea id="copyout" hidden readonly aria-label="Plan as text"></textarea>
+
+    <details class="card" id="importBox">
+      <summary>Load a new plan</summary>
+      <p class="hint">Paste the plan JSON. Loading it replaces the plan for everyone and clears all moves.</p>
+      <label for="importIn" class="hint">Plan JSON</label>
+      <textarea id="importIn" spellcheck="false"></textarea>
+      <div class="ctrls">
+        <button class="btn" id="importBtn" type="button">Replace the plan</button>
+        <span class="err" id="importErr" hidden></span>
+      </div>
+    </details>
+
+    <p class="hint"><button class="btn" id="forgetBtn" type="button">Forget team code on this browser</button></p>
+  </div>
+</div>
+
+<script>
+(function(){
+/* ---- Configuration: fill these two in (see README) ---- */
+const SUPABASE_URL = "https://lhizftspfexzgdiybmhs.supabase.co";
+const SUPABASE_KEY = "sb_publishable_X3nyIZ2CB2BGTPnvrS0iHw_Qza1iVsx";
+/* ------------------------------------------------------- */
+
+const L = 10, POLL_MS = 4000, CODE_KEY = "plan-code";
+const $ = id => document.getElementById(id);
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if(cls) e.className = cls; if(txt != null) e.textContent = txt; return e; };
+
+let code = null; try{ code = localStorage.getItem(CODE_KEY); }catch(e){}
+let DOC = null, DAYS = [], PEOPLE = [], MS = {}, DEPS = [], CATS = [], blocks = [], base = {};
+let lastStamp = null, docStamp = null, sel = null, drag = null, pendingRender = false;
+let liveState = "connecting", saveErr = false;
+const pending = {}, inflight = {}, queued = {}, lastRemote = {};
+
+async function rpc(fn, body){
+  const h = {"Content-Type":"application/json", "apikey":SUPABASE_KEY};
+  if(SUPABASE_KEY.startsWith("eyJ")) h["Authorization"] = "Bearer " + SUPABASE_KEY;
+  const r = await fetch(SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/rpc/" + fn, {method:"POST", headers:h, body:JSON.stringify(body)});
+  const txt = await r.text(); let j = null; try{ j = txt ? JSON.parse(txt) : null; }catch(e){}
+  if(!r.ok){ const err = new Error((j && (j.message || j.hint)) || ("Request failed (" + r.status + ")")); err.status = r.status; throw err; }
+  return j;
+}
+const isCodeErr = e => /wrong team code/i.test(String(e && e.message || ""));
+
+/* ---- plan model ---- */
+function workdays(start){
+  const out = [], names = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const d = new Date(start + "T12:00:00");
+  while(out.length < 10){ const w = d.getDay(); if(w !== 0 && w !== 6) out.push({w:names[w], n:d.getDate(), m:d.toLocaleString("en", {month:"short"})}); d.setDate(d.getDate() + 1); }
+  return out;
+}
+const clampPos = v => ({p:Math.max(0, Math.min(PEOPLE.length - 1, Math.round(+v.p || 0))), d:Math.max(0, Math.min(L, Math.round(+v.d || 0))), s:Math.max(1, Math.min(L, Math.round(+v.s || 1)))});
+function loadDoc(doc){
+  DOC = doc;
+  DAYS = workdays(doc.start || new Date().toISOString().slice(0, 10));
+  PEOPLE = (doc.people || []).map(p => Array.isArray(p) ? p : [String(p), ""]);
+  if(!PEOPLE.length) PEOPLE = [["Team", ""]];
+  MS = doc.milestones || {}; DEPS = doc.deps || [];
+  blocks = (doc.blocks || []).map(b => Object.assign({}, b, clampPos(b)));
+  CATS = (doc.cats || []).map(c => Array.isArray(c) ? c : [String(c), String(c)]);
+  blocks.forEach(b => { if(b.c && !CATS.some(c => c[0] === b.c)) CATS.push([b.c, b.c]); });
+  base = {}; blocks.forEach(b => base[b.id] = {p:b.p, d:b.d, s:b.s});
+}
+const byId = id => blocks.find(b => b.id === id);
+const catCls = c => { const i = CATS.findIndex(x => x[0] === c); return "k" + (i < 0 ? 4 : Math.min(i, 3) + 1); };
+const end = b => b.d === L ? L : b.d + b.s - 1;
+const fmt = d => d === L ? "Later" : DAYS[d].w + " " + DAYS[d].n;
+const when = b => b.d === L ? "Later" : (b.s > 1 ? fmt(b.d) + " to " + fmt(end(b)) : fmt(b.d));
+const same = (a, b) => a && b && a.p === b.p && a.d === b.d && a.s === b.s;
+const pos = b => ({p:b.p, d:b.d, s:b.s});
+
+function depOk(dp){
+  const a = byId(dp[0]), b = byId(dp[1]); if(!a || !b) return true;
+  if(dp[2] === "same") return a.d !== L && a.d === b.d;
+  if(dp[2] === "apart") return a.d === L || b.d === L || end(a) < b.d || end(b) < a.d;
+  if(b.d === L) return true; if(a.d === L) return false;
+  return end(a) < b.d;
+}
+const relWord = (dp, isFrom) => dp[2] === "same" ? "Same day as " : dp[2] === "apart" ? "Not on the same day as " : (isFrom ? "Must finish before " : "Needs ");
+function conflicts(){ const s = new Set(); DEPS.forEach(dp => { if(!depOk(dp)) s.add(dp[1]); }); return s; }
+const colCls = i => i === L ? "lat" : (i === 5 ? "wk2" : "");
+
+/* ---- rendering ---- */
+function render(focusSel){
+  if(!DOC) return;
+  $("title").textContent = DOC.title || "Plan";
+  const cl = $("cats"); cl.innerHTML = "";
+  CATS.forEach(c => { const s = el("span"); s.append(el("i","sw " + catCls(c[0])), document.createTextNode(c[1])); cl.appendChild(s); });
+  const board = $("board"); board.innerHTML = "";
+  const bad = conflicts();
+  board.appendChild(el("div","corner"));
+  const wk = el("div","weeks");
+  wk.append(el("div",null,"Week 1, " + DAYS[0].m + " " + DAYS[0].n + " to " + DAYS[4].n),
+            el("div",null,"Week 2, " + DAYS[5].m + " " + DAYS[5].n + " to " + DAYS[9].n), el("div",null,"Later"));
+  board.appendChild(wk);
+  board.appendChild(el("div","corner"));
+  const hd = el("div","cols hd");
+  for(let i = 0; i <= L; i++){
+    const c = el("div", colCls(i));
+    if(i === L){ c.appendChild(el("span","day","Parked")); c.appendChild(el("span","ms","After " + DAYS[9].m + " " + DAYS[9].n)); }
+    else {
+      const dy = el("span","day", DAYS[i].w); dy.appendChild(el("b",null, DAYS[i].n + " " + DAYS[i].m)); c.appendChild(dy);
+      (MS[i] || MS[String(i)] || []).forEach(m => c.appendChild(el("span","ms" + (m[1] ? " key" : ""), m[0])));
+    }
+    hd.appendChild(c);
+  }
+  board.appendChild(hd);
+  PEOPLE.forEach((pp, p) => {
+    const who = el("div","who"); who.appendChild(el("strong",null,pp[0])); if(pp[1]) who.appendChild(el("small",null,pp[1]));
+    board.appendChild(who);
+    const lane = el("div","lane"); lane.dataset.p = p;
+    const bg = el("div","bg cols"); for(let i = 0; i <= L; i++) bg.appendChild(el("div", colCls(i)));
+    lane.appendChild(bg);
+    const items = el("div","items cols");
+    blocks.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => {
+      const k = el("button","blk " + (b.d === L ? "later" : catCls(b.c)));
+      k.type = "button"; k.dataset.id = b.id;
+      k.style.gridColumn = (b.d + 1) + " / span " + (b.d === L ? 1 : b.s);
+      if(bad.has(b.id)) k.classList.add("conflict");
+      if(sel === b.id) k.classList.add("sel");
+      k.appendChild(el("span","tk",b.t || "")); k.appendChild(el("span",null,b.l || b.id));
+      if(bad.has(b.id)) k.appendChild(el("span","flag","Dependency broken"));
+      k.setAttribute("aria-label", (b.t || "") + " " + (b.l || "") + ", " + pp[0] + ", " + when(b) + (bad.has(b.id) ? ", dependency broken" : ""));
+      wire(k, b.id);
+      items.appendChild(k);
+    });
+    lane.appendChild(items);
+    board.appendChild(lane);
+  });
+  const nb = DEPS.filter(dp => !depOk(dp)).length;
+  $("status").className = "pill " + (nb ? "bad" : "ok");
+  $("status").textContent = nb ? nb + (nb === 1 ? " dependency broken" : " dependencies broken") : "All dependencies hold";
+  renderDeps(); renderDetail();
+  if(focusSel && sel){ const f = board.querySelector('[data-id="' + CSS.escape(sel) + '"]'); if(f) f.focus({preventScroll:true}); }
+}
+function renderDeps(){
+  const ul = $("deps"); ul.innerHTML = "";
+  if(!DEPS.length){ ul.appendChild(el("li",null,"No dependencies in this plan.")); return; }
+  DEPS.forEach(dp => {
+    const a = byId(dp[0]), b = byId(dp[1]); if(!a || !b) return;
+    const ok = depOk(dp); const li = el("li", ok ? "ok-row" : "bad-row");
+    li.append(el("span", null, a.l + (dp[2] === "same" ? " = same day as " : dp[2] === "apart" ? " not on the same day as " : " before ") + b.l),
+              el("span","st", ok ? "Holds" : "Broken"), el("span","why", (dp[3] || "") + (dp[3] ? ". " : "") + "Now: " + when(a) + " / " + when(b)));
+    ul.appendChild(li);
+  });
+}
+function renderDetail(){
+  const d = $("detail"); d.innerHTML = "";
+  const b = sel && byId(sel);
+  if(!b){ d.append(el("h2",null,"Block details"), el("p","hint","Select a block to see its notes and move it with buttons. On a phone, tap a block and use the buttons here; scroll the plan sideways to see all days.")); return; }
+  d.appendChild(el("h2",null,b.l));
+  d.appendChild(el("div","meta", (b.t || "") + " · " + PEOPLE[b.p][0] + " · " + when(b) + (b.d === L ? "" : " · " + b.s + (b.s === 1 ? " day" : " days"))));
+  if(b.n) d.appendChild(el("p","note",b.n));
+  const c = el("div","ctrls");
+  const mk = (txt, fn, dis) => { const x = el("button","btn",txt); x.type = "button"; x.disabled = !!dis; x.addEventListener("click", fn); return x; };
+  c.append(mk("Earlier", () => shift(b, -1), b.d === 0), mk("Later", () => shift(b, 1), b.d === L),
+           mk("Shorter", () => grow(b, -1), b.d === L || b.s <= 1), mk("Longer", () => grow(b, 1), b.d === L || b.d + b.s >= L));
+  const lab = el("label",null,"Person"); lab.htmlFor = "personSel";
+  const s = document.createElement("select"); s.id = "personSel";
+  PEOPLE.forEach((pp, i) => { const o = el("option",null,pp[0]); o.value = i; if(i === b.p) o.selected = true; s.appendChild(o); });
+  s.addEventListener("change", () => { b.p = +s.value; commit(false); });
+  c.append(lab, s, b.d === L ? mk("Back to plan", () => { b.d = L - b.s; commit(false); }) : mk("Park it", () => { b.d = L; commit(false); }));
+  d.appendChild(c);
+  const rel = DEPS.filter(dp => dp[0] === b.id || dp[1] === b.id);
+  if(rel.length){
+    const ul = el("ul","deps");
+    rel.forEach(dp => { const o = byId(dp[0] === b.id ? dp[1] : dp[0]); if(!o) return; const ok = depOk(dp);
+      const li = el("li", ok ? "ok-row" : "bad-row");
+      li.append(el("span",null, relWord(dp, dp[0] === b.id) + o.l), el("span","st", ok ? "Holds" : "Broken"), el("span","why", dp[3] || ""));
+      ul.appendChild(li); });
+    d.appendChild(ul);
+  }
+  d.appendChild(el("p","hint","Keyboard: arrow left and right move by a day, up and down change person, Shift with left and right changes the length."));
+}
+
+/* ---- live status and saving ---- */
+function setLive(){
+  const e = $("live");
+  if(liveState === "offline"){ e.className = "pill bad"; e.textContent = "Not connected: retrying"; }
+  else if(liveState === "connecting"){ e.className = "pill wait"; e.textContent = "Connecting…"; }
+  else if(saveErr){ e.className = "pill bad"; e.textContent = "Last change was not saved"; }
+  else if(Object.keys(pending).length){ e.className = "pill wait"; e.textContent = "Saving…"; }
+  else { e.className = "pill ok"; e.textContent = "Live: shared with the team"; }
+}
+function commit(focusSel){ render(focusSel); syncChanged(); }
+function syncChanged(){ blocks.forEach(b => { const r = pending[b.id] || lastRemote[b.id] || base[b.id]; if(!same(r, pos(b))) write(b.id, pos(b)); }); }
+function write(id, v){
+  pending[id] = v;
+  if(inflight[id]){ queued[id] = v; setLive(); return; }
+  inflight[id] = true; setLive();
+  rpc("plan_move", {code, block:id, np:v.p, nd:v.d, ns:v.s}).then(() => {
+    inflight[id] = false; saveErr = false; lastRemote[id] = v;
+    if(queued[id]){ const q = queued[id]; delete queued[id]; write(id, q); return; }
+    if(pending[id] === v) delete pending[id];
+    setLive();
+  }).catch(err => {
+    inflight[id] = false; delete queued[id]; delete pending[id];
+    if(isCodeErr(err)){ toGate("The team code changed. Enter the new code."); return; }
+    saveErr = true;
+    const r = lastRemote[id] || base[id], b = byId(id);
+    if(b && r){ b.p = r.p; b.d = r.d; b.s = r.s; }
+    setLive(); render(false);
+  });
+}
+function shift(b, dir){
+  if(dir < 0){ if(b.d === L) b.d = L - b.s; else b.d = Math.max(0, b.d - 1); }
+  else { if(b.d === L) return; b.d = (b.d + b.s >= L) ? L : b.d + 1; }
+  commit(false);
+}
+function grow(b, dir){ if(b.d === L) return; b.s = Math.max(1, Math.min(L - b.d, b.s + dir)); commit(false); }
+
+/* ---- polling ---- */
+async function poll(){
+  if(!code) return;
+  try{
+    const res = await rpc("plan_get", {code});
+    if(liveState !== "live"){ liveState = "live"; setLive(); }
+    if(!res || !res.doc){ return; }
+    if(res.stamp === lastStamp) return;
+    lastStamp = res.stamp;
+    const docKey = JSON.stringify(res.doc);
+    if(docKey !== docStamp){ docStamp = docKey; loadDoc(res.doc); Object.keys(lastRemote).forEach(k => delete lastRemote[k]); if(sel && !byId(sel)) sel = null; }
+    const P = res.pos || {};
+    blocks.forEach(b => {
+      const v = P[b.id] ? clampPos(P[b.id]) : base[b.id];
+      lastRemote[b.id] = v;
+      if(pending[b.id]) return;
+      b.p = v.p; b.d = v.d; b.s = v.s;
+    });
+    if(drag && drag.moved) pendingRender = true; else render(false);
+  }catch(err){
+    if(isCodeErr(err)){ toGate("That team code is not right."); return; }
+    liveState = "offline"; setLive();
+  }
+}
+
+/* ---- dragging and keyboard ---- */
+function target(x, y){
+  const hit = document.elementFromPoint(x, y); const lane = hit && hit.closest(".lane"); if(!lane) return null;
+  const cells = lane.querySelectorAll(".bg > div");
+  for(let i = 0; i < cells.length; i++){ const r = cells[i].getBoundingClientRect(); if(x >= r.left && x < r.right) return {p:+lane.dataset.p, d:i, lane, cells}; }
+  return null;
+}
+function clearGhost(){ document.querySelectorAll(".ghost").forEach(g => g.remove()); }
+function showGhost(t, b){
+  clearGhost(); if(!t) return;
+  const s = t.d === L ? 1 : b.s, d0 = t.d === L ? L : Math.min(t.d, L - s);
+  const a = t.cells[d0], z = t.cells[d0 + s - 1];
+  const g = el("div","ghost"); g.style.left = (a.offsetLeft + 3) + "px"; g.style.width = (z.offsetLeft + z.offsetWidth - a.offsetLeft - 6) + "px";
+  t.lane.appendChild(g);
+}
+function wire(k, id){
+  k.addEventListener("pointerdown", e => { if(e.button !== 0) return; drag = {id, x:e.clientX, y:e.clientY, moved:false}; try{ k.setPointerCapture(e.pointerId); }catch(_){} });
+  k.addEventListener("pointermove", e => {
+    if(!drag || drag.id !== id) return;
+    if(!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+    drag.moved = true; k.classList.add("dragging"); showGhost(target(e.clientX, e.clientY), byId(id));
+  });
+  k.addEventListener("pointerup", e => {
+    if(!drag || drag.id !== id) return;
+    const moved = drag.moved; drag = null; clearGhost(); k.classList.remove("dragging"); pendingRender = false;
+    const b = byId(id);
+    if(moved){ const t = target(e.clientX, e.clientY); if(t){ b.p = t.p; b.d = t.d === L ? L : Math.min(t.d, L - b.s); } sel = id; commit(false); }
+    else { sel = (sel === id ? null : id); render(true); }
+  });
+  k.addEventListener("pointercancel", () => { drag = null; clearGhost(); k.classList.remove("dragging"); if(pendingRender){ pendingRender = false; render(false); } });
+  k.addEventListener("keydown", e => {
+    const b = byId(id); let hit = true;
+    if(e.key === "ArrowLeft" && e.shiftKey){ if(b.d !== L) b.s = Math.max(1, b.s - 1); }
+    else if(e.key === "ArrowRight" && e.shiftKey){ if(b.d !== L) b.s = Math.min(L - b.d, b.s + 1); }
+    else if(e.key === "ArrowLeft"){ if(b.d === L) b.d = L - b.s; else b.d = Math.max(0, b.d - 1); }
+    else if(e.key === "ArrowRight"){ if(b.d !== L) b.d = (b.d + b.s >= L) ? L : b.d + 1; }
+    else if(e.key === "ArrowUp"){ b.p = Math.max(0, b.p - 1); }
+    else if(e.key === "ArrowDown"){ b.p = Math.min(PEOPLE.length - 1, b.p + 1); }
+    else hit = false;
+    if(hit){ e.preventDefault(); sel = id; commit(true); }
+  });
+}
+
+/* ---- toolbar actions ---- */
+function planText(){
+  const out = [(DOC.title || "Plan") + ", " + fmt(0) + " " + DAYS[0].m + " to " + fmt(9) + " " + DAYS[9].m];
+  PEOPLE.forEach((pp, p) => { out.push("", pp[0]); blocks.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => out.push("- " + when(b) + ": " + (b.t || "") + " " + (b.l || ""))); });
+  const nb = DEPS.filter(dp => !depOk(dp));
+  if(nb.length){ out.push("", "Broken dependencies"); nb.forEach(dp => out.push("- " + byId(dp[0]).l + " / " + byId(dp[1]).l)); }
+  return out.join("\n");
+}
+$("copyBtn").addEventListener("click", () => {
+  const txt = planText(), ta = $("copyout"), btn = $("copyBtn");
+  const fallback = () => { ta.value = txt; ta.hidden = false; ta.focus(); ta.select(); btn.textContent = "Select and copy the text below"; };
+  try{ navigator.clipboard.writeText(txt).then(() => { ta.hidden = true; btn.textContent = "Copied"; setTimeout(() => btn.textContent = "Copy as text", 1600); }).catch(fallback); }catch(e){ fallback(); }
+});
+function twoStep(btn, label, armedLabel, action){
+  let armed = null;
+  btn.addEventListener("click", () => {
+    if(!armed){ btn.textContent = armedLabel; armed = setTimeout(() => { armed = null; btn.textContent = label; }, 3000); return; }
+    clearTimeout(armed); armed = null; btn.textContent = label; action();
+  });
+}
+twoStep($("resetBtn"), "Undo all moves", "Click again: undo moves for everyone", async () => {
+  try{ await rpc("plan_import", {code, newdoc:DOC}); lastStamp = null; sel = null; await poll(); }
+  catch(err){ saveErr = true; setLive(); }
+});
+twoStep($("importBtn"), "Replace the plan", "Click again to replace it for everyone", async () => {
+  const errEl = $("importErr"); errEl.hidden = true;
+  let doc; try{ doc = JSON.parse($("importIn").value); }catch(e){ errEl.textContent = "That is not valid JSON. Paste the whole plan, from { to }."; errEl.hidden = false; return; }
+  if(!doc || !Array.isArray(doc.blocks) || !doc.start){ errEl.textContent = "The plan needs a start date and a blocks list."; errEl.hidden = false; return; }
+  try{ await rpc("plan_import", {code, newdoc:doc}); $("importIn").value = ""; $("importBox").open = false; lastStamp = null; docStamp = null; sel = null; await poll(); }
+  catch(err){ errEl.textContent = "Could not load the plan: " + err.message; errEl.hidden = false; }
+});
+$("forgetBtn").addEventListener("click", () => { try{ localStorage.removeItem(CODE_KEY); }catch(e){} code = null; toGate(""); });
+
+/* ---- start ---- */
+let timer = null;
+function toGate(msg){
+  if(timer){ clearInterval(timer); timer = null; }
+  try{ localStorage.removeItem(CODE_KEY); }catch(e){}
+  code = null; $("app").hidden = true; $("gate").hidden = false;
+  $("gateErr").textContent = msg || ""; $("gateErr").hidden = !msg; $("codeIn").focus();
+}
+async function openApp(){
+  $("gate").hidden = true; $("app").hidden = false; liveState = "connecting"; setLive();
+  await poll();
+  if(code && !timer) timer = setInterval(() => { if(document.visibilityState === "visible") poll(); }, POLL_MS);
+}
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && code) poll(); });
+$("gateForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const v = $("codeIn").value.trim(); if(!v) return;
+  try{ await rpc("plan_get", {code:v}); }
+  catch(err){ $("gateErr").textContent = isCodeErr(err) ? "That team code is not right." : "Could not reach the plan database. Check your connection and try again."; $("gateErr").hidden = false; return; }
+  code = v; try{ localStorage.setItem(CODE_KEY, v); }catch(e){}
+  $("codeIn").value = ""; openApp();
+});
+
+if(SUPABASE_URL.includes("YOUR-PROJECT") || SUPABASE_KEY.startsWith("YOUR-")){ $("setupMsg").hidden = false; }
+else if(code){ openApp(); }
+else { toGate(""); }
+})();
+</script>
+</body>
+</html>
