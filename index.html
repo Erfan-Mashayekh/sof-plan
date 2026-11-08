@@ -12,7 +12,7 @@
   --accent:#2f5bc4; --accent-bg:#edf2fc; --past:#f4f5f6;
   --err:#b0261c; --err-bg:#fdeceb; --err-line:#e6a19b;
   --warn:#7d5500; --warn-bg:#fff5dc; --warn-line:#e3c15f;
-  --ok:#2a7440; --ok-bg:#e7f3ea;
+  --ok:#2a7440; --ok-bg:#e7f3ea; --off-stripe:rgba(40,46,52,.09);
   --k1-bg:#efedfb; --k1-bd:#7a6fd0; --k1-fg:#3a3285;
   --k2-bg:#fbf1df; --k2-bd:#c18a2a; --k2-fg:#6b4508;
   --k3-bg:#e4f4ef; --k3-bd:#2f9a7c; --k3-fg:#0d4e3e;
@@ -30,7 +30,7 @@
   --accent:#86a6ee; --accent-bg:#1b2742; --past:#1a1c1f;
   --err:#ff8b80; --err-bg:#3a1a18; --err-line:#7a2f29;
   --warn:#f0c15a; --warn-bg:#352a10; --warn-line:#6e5620;
-  --ok:#6fcf8a; --ok-bg:#16301f;
+  --ok:#6fcf8a; --ok-bg:#16301f; --off-stripe:rgba(255,255,255,.08);
   --k1-bg:#2a2650; --k1-bd:#9a90ec; --k1-fg:#dcd8fb;
   --k2-bg:#3a2c12; --k2-bd:#d9a24a; --k2-fg:#f6dfb4;
   --k3-bg:#123a30; --k3-bd:#4cc19f; --k3-fg:#c4eee1;
@@ -134,7 +134,17 @@ textarea.code{font-family:var(--f-mono);font-size:12px;min-height:140px}
 .who small{color:var(--muted);font-size:11px}
 .lane{position:relative;border-top:1px solid var(--line);min-height:84px}
 .bg{position:absolute;inset:0}
-.bg>div{border-left:1px solid var(--line)}
+.bg>div{border-left:1px solid var(--line);position:relative}
+.bg>div.off{background-image:repeating-linear-gradient(135deg,var(--off-stripe) 0 5px,transparent 5px 11px)}
+.bg>div.off::after{content:"Off";position:absolute;left:6px;bottom:4px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.who .offsum{color:var(--fg);font-weight:500}
+.who .link{align-self:flex-start;margin-top:2px}
+.offgrid{display:grid;grid-template-columns:auto repeat(5,minmax(0,1fr));gap:6px 8px;align-items:center}
+.offgrid .wk{font-size:12px;color:var(--muted);white-space:nowrap}
+.offday{display:flex;align-items:center;gap:6px;font-size:13px;border:1px solid var(--line);border-radius:6px;padding:6px 8px;cursor:pointer;min-width:0;white-space:nowrap}
+.offday:has(input:checked){border-color:var(--fg);background-image:repeating-linear-gradient(135deg,var(--off-stripe) 0 5px,transparent 5px 11px);font-weight:600}
+.offday.outside{color:var(--muted)}
+@media (max-width:560px){.offgrid{grid-template-columns:repeat(5,minmax(0,1fr))}.offgrid .wk{grid-column:1 / -1}}
 .items{position:relative;grid-auto-flow:row dense;row-gap:6px;padding-block:8px}
 .blk{margin:0 4px;text-align:left;font:inherit;font-size:12.5px;line-height:1.3;border:1px solid;border-radius:5px;padding:6px 8px 7px;cursor:grab;touch-action:none;min-width:0;overflow-wrap:anywhere;display:flex;flex-direction:column;gap:2px;user-select:none;-webkit-user-select:none;transition:opacity .15s}
 .blk .tk{font-family:var(--f-mono);font-size:10.5px;opacity:.8}
@@ -276,6 +286,7 @@ fieldset>.btn{align-self:flex-start}
         <span id="live" class="pill wait">Connecting…</span>
         <button class="who-chip" id="whoBtn" type="button" title="Change your name"></button>
         <button class="btn" id="undoBtn" type="button" disabled title="Nothing to undo">↶ Undo</button>
+        <button class="btn" id="redoBtn" type="button" disabled title="Nothing to redo">Redo ↷</button>
         <button class="btn" id="addBtn" type="button">+ Block</button>
         <button class="btn" id="editPlanBtn" type="button">Edit plan</button>
         <div class="menu">
@@ -343,7 +354,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const q = s => "“" + s + "”";
 
 let code = store.get(CODE_KEY), who = store.get(NAME_KEY) || "";
-let REV = null, SDOC = null, SPOS = {}, LOG = [], CAN_RESET = false, UNDO = null, docKey = null;
+let REV = null, SDOC = null, SPOS = {}, LOG = [], CAN_RESET = false, UNDO = null, REDO = null, OFF = {}, docKey = null;
 let showOv = store.get(OV_KEY) === "1";
 let M = null, blocks = [], base = {};
 let sel = null, drag = null, pendingRender = false, filter = null;
@@ -426,6 +437,17 @@ function analyze(m){
   }
   return {broken, dangling, overlaps};
 }
+const offSet = nm => new Set(Array.isArray(OFF[nm]) ? OFF[nm] : []);
+function offClashes(m){
+  const out = [];
+  m.blocks.forEach(b => {
+    if(b.d === L) return;
+    const off = offSet(m.people[b.p][0]), hit = [];
+    for(let d = b.d; d <= endOf(b); d++) if(off.has(m.days[d].iso)) hit.push(d);
+    if(hit.length) out.push({b, days:hit});
+  });
+  return out;
+}
 const catOf = (m, key) => m.cats.find(c => c[0] === key);
 const catCls = (m, key) => { const c = catOf(m, key); return "k" + (c ? c[2] : 4); };
 const fmt = (m, d) => d === L ? "Parked" : m.days[d].w + " " + m.days[d].n;
@@ -471,8 +493,10 @@ function problems(){
   if(saveErr) errs.push({t:"A change was not saved: " + saveErr, dismiss:true});
   if(!M) return {errs, warns, A:null};
   const A = analyze(M), today = todayISO(), last = M.days[L - 1];
+  A.off = offClashes(M);
   if(today > last.iso) errs.push({t:"This plan ended on " + dayLong(last) + ". Upload the plan for the next two weeks.", act:"upload"});
   A.broken.forEach(dp => errs.push({t:"Dependency broken: " + depText(dp, M.by) + "." + (dp[3] ? " (" + dp[3] + ")" : ""), id:dp[1]}));
+  A.off.forEach(x => errs.push({t:M.people[x.b.p][0] + " is off on " + x.days.map(d => dayLong(M.days[d])).join(", ") + " but has " + q(name(x.b)) + " planned.", id:x.b.id}));
   if(showOv) A.overlaps.forEach(([a, b]) => errs.push({t:M.people[a.p][0] + " is double-booked: " + q(name(a)) + " and " + q(name(b)) + " overlap on " + overlapWhen(M, a, b) + ".", id:b.id}));
   if(validDate(SDOC.start) && new Date(SDOC.start + "T12:00:00").getDay() !== 1) warns.push({t:"The plan starts on a " + WD[new Date(SDOC.start + "T12:00:00").getDay()] + ", not a Monday.", act:"plan"});
   if(A.dangling.length) warns.push({t:A.dangling.length + (A.dangling.length === 1 ? " dependency points" : " dependencies point") + " to a block that is no longer in the plan. They are ignored.", act:"cleandeps"});
@@ -553,6 +577,7 @@ function renderBoard(P, focusSel){
   const colCls = i => [i === L ? "lat" : (i === 5 ? "wk2" : ""), isPast(i) ? "past" : "", isToday(i) ? "today" : ""].join(" ").trim();
   const flagged = {};
   if(P.A){ P.A.broken.forEach(dp => { flagged[dp[0]] = flagged[dp[0]] || "Dependency broken"; flagged[dp[1]] = "Dependency broken"; });
+           P.A.off.forEach(x => { flagged[x.b.id] = "On a day off"; });
            if(showOv) P.A.overlaps.forEach(([a, b]) => { flagged[a.id] = flagged[a.id] || "Double-booked"; flagged[b.id] = flagged[b.id] || "Double-booked"; }); }
   const rel = relInfo(), hasSel = !!(sel && byId(sel));
   board.append(el("div", "corner"));
@@ -571,9 +596,13 @@ function renderBoard(P, focusSel){
   }
   board.append(hd);
   M.people.forEach((pp, p) => {
-    const w = el("div", "who"); w.append(el("strong", null, pp[0])); if(pp[1]) w.append(el("small", null, pp[1])); board.append(w);
+    const off = offSet(pp[0]), offIn = D.filter(x => off.has(x.iso));
+    const w = el("div", "who"); w.append(el("strong", null, pp[0])); if(pp[1]) w.append(el("small", null, pp[1]));
+    if(offIn.length) w.append(el("small", "offsum", "Off: " + offIn.map(x => x.w + " " + x.n).join(", ")));
+    const ob = el("button", "link noprint", "Days off"); ob.type = "button"; ob.title = "Set the days " + pp[0] + " is off"; ob.addEventListener("click", () => openOffDlg(p)); w.append(ob);
+    board.append(w);
     const lane = el("div", "lane"); lane.dataset.p = p;
-    const bg = el("div", "bg cols"); for(let i = 0; i <= L; i++) bg.append(el("div", colCls(i)));
+    const bg = el("div", "bg cols"); for(let i = 0; i <= L; i++){ const c = el("div", colCls(i)); if(i < L && off.has(D[i].iso)){ c.classList.add("off"); c.title = pp[0] + " is off"; } bg.append(c); }
     lane.append(bg);
     const items = el("div", "items cols");
     blocks.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => {
@@ -673,6 +702,8 @@ function renderChecks(P){
     if(!live.length) dul.append(el("li", null, "No dependencies in this plan."));
     dl.append(dul);
     row(A.broken.length ? "bad" : "ok", A.broken.length ? A.broken.length + " of " + live.length + " dependencies broken" : "All " + live.length + " dependencies hold", null, dl);
+    row(A.off.length ? "bad" : "ok", A.off.length ? A.off.length + (A.off.length === 1 ? " block is" : " blocks are") + " on a day off" : "Days off are respected",
+        A.off.length ? A.off.map(x => M.people[x.b.p][0] + ": " + name(x.b)).join("; ") : "Set them with \u201cDays off\u201d under each name.");
     const toggle = el("button", "link noprint", showOv ? "Turn off" : "Turn on"); toggle.type = "button";
     toggle.addEventListener("click", () => { showOv = !showOv; store.set(OV_KEY, showOv ? "1" : "0"); lastAlertKey = ""; render(false); });
     if(!showOv) row("off", "Double-booking check is off", "Turn it on to flag people with two or more blocks on the same day. Only on this browser.");
@@ -745,8 +776,9 @@ async function edit(fn, what){
     try{ await poll(true, true); }catch(e){ return isCodeErr(e) ? "The code was changed." : "Could not reach the plan database. Check your connection."; }
     if(!SDOC) return "The plan is not loaded yet.";
     const d = bakedFrom(SDOC, SPOS);
-    try{ fn(d); }catch(e){ return e.message || String(e); }
-    try{ await rpc("plan_save", {code, newdoc:d, base_rev:REV, who, what}); }
+    let extra;
+    try{ extra = fn(d); }catch(e){ return e.message || String(e); }
+    try{ await rpc("plan_save", Object.assign({code, newdoc:d, base_rev:REV, who, what}, extra && typeof extra === "object" ? extra : {})); }
     catch(e){
       if(/changed meanwhile/i.test(e.message)) continue;
       if(isCodeErr(e)){ toGate("The code was changed. Enter the new code."); return "The code was changed."; }
@@ -766,7 +798,7 @@ async function poll(force, strict){
     const wasOff = liveState !== "live"; liveState = "live";
     if(res && res.same){ if(wasOff) refreshStatus(); if(todayISO() !== lastToday) render(false); return; }
     if(!res || !res.doc){ setLive(); return; }
-    REV = res.rev; SPOS = res.pos || {}; LOG = Array.isArray(res.log) ? res.log : []; CAN_RESET = !!res.can_reset; UNDO = res.undo || null;
+    REV = res.rev; SPOS = res.pos || {}; LOG = Array.isArray(res.log) ? res.log : []; CAN_RESET = !!res.can_reset; UNDO = res.undo || null; REDO = res.redo || null; OFF = res.off && typeof res.off === "object" ? res.off : {};
     const k = JSON.stringify(res.doc);
     if(k !== docKey){ docKey = k; SDOC = res.doc; M = model(SDOC); blocks = M.blocks; if(sel && !byId(sel)) sel = null; }
     base = {};
@@ -832,31 +864,39 @@ function wire(k, id){
   });
 }
 
-/* ---- undo: reverts the most recent change on the board, for everyone ---- */
+/* ---- undo / redo: step the whole board back or forward, for everyone ---- */
 function renderUndo(){
-  const b = $("undoBtn");
-  if(undoing) return;
-  if(!UNDO){ b.disabled = true; b.title = "Nothing to undo"; return; }
-  b.disabled = false;
-  b.title = "Undo " + (UNDO.who ? UNDO.who + ": " : "") + UNDO.what + " (" + relTime(UNDO.at) + ")  [Ctrl+Z]";
+  if(stepping) return;
+  const set = (b, x, verb, keys) => {
+    if(!x){ b.disabled = true; b.title = "Nothing to " + verb.toLowerCase(); return; }
+    b.disabled = false;
+    b.title = verb + " " + (x.who ? x.who + ": " : "") + x.what + " (" + relTime(x.at) + ")  [" + keys + "]";
+  };
+  set($("undoBtn"), UNDO, "Undo", "Ctrl+Z");
+  set($("redoBtn"), REDO, "Redo", "Ctrl+Shift+Z");
 }
-let undoing = false;
-async function undo(confirmed){
-  if(undoing || !M) return;
+let stepping = false;
+async function step(kind, confirmed){
+  if(stepping || !M) return;
   await idle(); await poll(true);
-  const u = UNDO; if(!u){ renderUndo(); return; }
-  if(!confirmed && u.who && u.who !== who){
-    const {foot, ok} = smallMsg("Undo someone else's change?", "The last change on the board was made by " + u.who + ": " + u.what + " (" + relTime(u.at) + "). Undo it for everyone?");
+  const x = kind === "undo" ? UNDO : REDO; if(!x){ renderUndo(); return; }
+  const other = kind === "undo" ? (x.who && x.who !== who ? x.who : null) : (x.by && x.by !== who ? x.by : null);
+  if(!confirmed && other){
+    const txt = kind === "undo"
+      ? "The last change on the board was made by " + other + ": " + x.what + " (" + relTime(x.at) + "). Undo it for everyone?"
+      : other + " undid this change: " + x.what + ". Redo it for everyone?";
+    const {foot, ok} = smallMsg(kind === "undo" ? "Undo someone else's change?" : "Redo a change someone else undid?", txt);
     ok.textContent = "Cancel"; ok.className = "btn";
-    const go = el("button", "btn primary", "Undo it"); go.type = "button"; foot.append(go);
-    go.addEventListener("click", () => { $("smallDlg").close(); undo(true); });
+    const go = el("button", "btn primary", kind === "undo" ? "Undo it" : "Redo it"); go.type = "button"; foot.append(go);
+    go.addEventListener("click", () => { $("smallDlg").close(); step(kind, true); });
     return;
   }
-  const b = $("undoBtn"); busy(b, true, "Undoing\u2026"); undoing = true;
-  try{ await rpc("plan_undo", {code, who, expect:u.id}); saveErr = ""; }
-  catch(e){ undoing = false; busy(b, false); showSaveErr("undo failed: " + e.message); }
-  undoing = false; busy(b, false); await poll(true); renderUndo();
+  const b = $(kind + "Btn"); busy(b, true, kind === "undo" ? "Undoing\u2026" : "Redoing\u2026"); stepping = true;
+  try{ await rpc("plan_" + kind, {code, who, expect:x.id}); saveErr = ""; }
+  catch(e){ stepping = false; busy(b, false); showSaveErr(kind + " failed: " + e.message); }
+  stepping = false; busy(b, false); await poll(true); renderUndo();
 }
+const undo = () => step("undo"), redo = () => step("redo");
 
 /* ---- form helpers ---- */
 function inp(type, val, ph){ const i = document.createElement("input"); i.type = type; if(type !== "file" && type !== "checkbox") i.value = val == null ? "" : val; if(ph) i.placeholder = ph; return i; }
@@ -977,6 +1017,46 @@ function openBlockDlg(id){
   dlg.showModal(); title.focus();
 }
 
+/* ---- days off ---- */
+function openOffDlg(p){
+  if(!M || !M.people[p]) return;
+  const nm = M.people[p][0];
+  const dlg = $("smallDlg"), {body, foot} = dlgShell($("smallForm"), "Days off for " + nm);
+  body.append(el("p", "hint", "Tick the days " + nm + " is off. Those days are shaded on the board, and anything planned on them is flagged in red. Days off stay when a new plan is loaded, so you can also mark days in the next plan."));
+  const d = new Date(M.days[0].iso + "T12:00:00"); while(d.getDay() !== 1) d.setDate(d.getDate() - 1);
+  const days = [];
+  while(days.length < 20){ const w = d.getDay(); if(w !== 0 && w !== 6) days.push({iso:iso(d), w:WD[w].slice(0, 3), n:d.getDate(), m:d.toLocaleString("en", {month:"short"})}); d.setDate(d.getDate() + 1); }
+  const cur = offSet(nm), inPlan = new Set(M.days.map(x => x.iso)), boxes = [];
+  const grid = el("div", "offgrid");
+  for(let wk = 0; wk < 4; wk++){
+    const first = days[wk * 5], plan = days.slice(wk * 5, wk * 5 + 5).some(x => inPlan.has(x.iso));
+    grid.append(el("span", "wk", "Week of " + first.n + " " + first.m + (plan ? "" : " (next plan)")));
+    days.slice(wk * 5, wk * 5 + 5).forEach(x => {
+      const lab = el("label", "offday" + (inPlan.has(x.iso) ? "" : " outside")); const cb = inp("checkbox"); cb.checked = cur.has(x.iso);
+      lab.append(cb, document.createTextNode(x.w + " " + x.n)); lab.title = x.w + " " + x.n + " " + x.m; grid.append(lab); boxes.push({x, cb});
+    });
+  }
+  body.append(grid);
+  const err = el("p", "err-text"); err.hidden = true; body.append(err);
+  const clear = el("button", "link", "Clear all"); clear.type = "button"; clear.addEventListener("click", () => boxes.forEach(b => b.cb.checked = false));
+  foot.append(clear, el("span", "sep"));
+  const cancel = el("button", "btn", "Cancel"); cancel.type = "button"; cancel.addEventListener("click", () => dlg.close());
+  const save = el("button", "btn primary", "Save"); save.type = "button"; foot.append(cancel, save);
+  save.addEventListener("click", async () => {
+    const chosen = boxes.filter(b => b.cb.checked).map(b => b.x);
+    const added = chosen.filter(x => !cur.has(x.iso)), removed = boxes.filter(b => !b.cb.checked && cur.has(b.x.iso)).map(b => b.x);
+    if(!added.length && !removed.length){ dlg.close(); return; }
+    const f = x => x.w + " " + x.n + " " + x.m;
+    const what = "set days off for " + nm + ":" + (added.length ? " off " + added.map(f).join(", ") : "") + (added.length && removed.length ? ";" : "") + (removed.length ? " working again " + removed.map(f).join(", ") : "");
+    busy(save, true); err.hidden = true;
+    await idle();
+    try{ await rpc("plan_set_off", {code, person:nm, d_from:days[0].iso, d_to:days[19].iso, days:chosen.map(x => x.iso), who, what}); }
+    catch(e){ busy(save, false); err.textContent = "Not saved: " + e.message; err.hidden = false; return; }
+    busy(save, false); dlg.close(); await poll(true);
+  });
+  dlg.showModal();
+}
+
 /* ---- plan settings dialog ---- */
 function openPlanDlg(){
   if(!M) return;
@@ -1030,6 +1110,7 @@ function openPlanDlg(){
       }
       const map = {}; people.forEach((x, ni) => { if(x.i != null) map[x.i] = ni; });
       d.blocks.forEach(b => { const op = clampPos(b, curPeople.length).p; b.p = map[op] != null ? map[op] : 0; });
+      const renames = {}; people.forEach(x => { if(x.i != null && curPeople[x.i] && curPeople[x.i][0] !== x.n) renames[curPeople[x.i][0]] = x.n; });
       d.people = people.map(x => [x.n, x.note]);
       const curCats = normCats(d), keptK = cats.filter(x => x.k).map(x => x.k);
       curCats.forEach(c => {
@@ -1041,6 +1122,7 @@ function openPlanDlg(){
       d.title = title.value.trim(); d.start = start.value;
       if(jira.value.trim()) d.jira = safeUrl(jira.value); else delete d.jira;
       const m = {}; ms.forEach(x => { (m[x.d] = m[x.d] || []).push([x.t, x.key ? 1 : 0]); }); d.milestones = m;
+      return Object.keys(renames).length ? {renames} : null;
     }, "changed the plan settings");
     busy(save, false);
     if(e) return fail(e);
@@ -1091,6 +1173,7 @@ function validatePlan(raw){
   if(wd !== 1) warnings.push("The plan starts on a " + WD[wd] + ", not a Monday.");
   if(todayISO() > m.days[L - 1].iso) warnings.push("This plan already ended on " + dayLong(m.days[L - 1]) + ".");
   A.broken.forEach(dp => warnings.push("Dependency broken: " + depText(dp, m.by) + "."));
+  offClashes(m).forEach(x => warnings.push(m.people[x.b.p][0] + " is off on " + x.days.map(d => dayLong(m.days[d])).join(", ") + " but has " + q(name(x.b)) + " planned."));
   if(showOv) A.overlaps.forEach(([a, b]) => warnings.push(m.people[a.p][0] + " is double-booked: " + q(name(a)) + " and " + q(name(b)) + "."));
   const named = Array.isArray(doc.cats) ? doc.cats.map(c => String(Array.isArray(c) ? c[0] : c)) : [];
   [...new Set(m.blocks.map(b => b.c).filter(c => c && !named.includes(c)))].forEach(c => warnings.push("Topic " + q(c) + " has no name in \"cats\", so it shows as " + q(c) + "."));
@@ -1213,7 +1296,7 @@ function template(){
 }
 function planText(){
   const D = M.days, out = [(SDOC.title || "Plan") + ", " + dayLong(D[0]) + " to " + dayLong(D[L - 1])];
-  M.people.forEach((pp, p) => { out.push("", pp[0]); blocks.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => out.push("- " + when(M, b) + ": " + (b.t ? b.t + " " : "") + name(b))); });
+  M.people.forEach((pp, p) => { const offIn = D.filter(x => offSet(pp[0]).has(x.iso)); out.push("", pp[0] + (offIn.length ? " (off: " + offIn.map(dayLong).join(", ") + ")" : "")); blocks.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => out.push("- " + when(M, b) + ": " + (b.t ? b.t + " " : "") + name(b))); });
   const P = problems(); if(P.errs.length){ out.push("", "Problems"); P.errs.forEach(x => out.push("- " + x.t)); }
   return out.join("\n");
 }
@@ -1269,11 +1352,14 @@ document.addEventListener("click", e => { if(!menu.hidden && !e.target.closest("
 document.addEventListener("keydown", e => { if(e.key === "Escape" && !menu.hidden){ closeMenu(); menuBtn.focus(); } });
 $("addBtn").addEventListener("click", () => openBlockDlg(null));
 $("undoBtn").addEventListener("click", () => undo());
+$("redoBtn").addEventListener("click", () => redo());
 document.addEventListener("keydown", e => {
-  if(!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== "z") return;
+  if(!(e.ctrlKey || e.metaKey) || e.altKey) return;
+  const k = e.key.toLowerCase(), isUndo = k === "z" && !e.shiftKey, isRedo = (k === "z" && e.shiftKey) || (k === "y" && !e.shiftKey);
+  if(!isUndo && !isRedo) return;
   if(!M || $("app").hidden || document.querySelector("dialog[open]")) return;
   const t = e.target; if(t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
-  e.preventDefault(); undo();
+  e.preventDefault(); if(isUndo) undo(); else redo();
 });
 $("editPlanBtn").addEventListener("click", () => openPlanDlg());
 $("whoBtn").addEventListener("click", openName);
