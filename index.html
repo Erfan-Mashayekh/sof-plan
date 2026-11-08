@@ -3,110 +3,245 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Plan</title>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<title>Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
 :root{
-  --bg:#ffffff; --fg:#1d2023; --muted:#5d646b; --line:#e1e4e7; --line-strong:#b9bfc5; --panel:#f6f7f8;
+  --bg:#ffffff; --fg:#1b1f23; --muted:#5b636b; --faint:#8a9198; --line:#e3e6e9; --line-strong:#c3c8cd; --panel:#f6f7f8;
+  --accent:#2f5bc4; --accent-bg:#edf2fc; --past:#f4f5f6;
+  --err:#b0261c; --err-bg:#fdeceb; --err-line:#e6a19b;
+  --warn:#7d5500; --warn-bg:#fff5dc; --warn-line:#e3c15f;
+  --ok:#2a7440; --ok-bg:#e7f3ea;
   --k1-bg:#efedfb; --k1-bd:#7a6fd0; --k1-fg:#3a3285;
   --k2-bg:#fbf1df; --k2-bd:#c18a2a; --k2-fg:#6b4508;
   --k3-bg:#e4f4ef; --k3-bd:#2f9a7c; --k3-fg:#0d4e3e;
-  --k4-bg:#f3f4f5; --k4-bd:#a3a9af; --k4-fg:#2c3136;
-  --warn:#b4322a; --warn-bg:#fbeceb; --ok:#2d7a43; --ok-bg:#e8f4ec; --focus:#3a63c9;
-  --f-display:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --k4-bg:#f1f2f4; --k4-bd:#9aa1a8; --k4-fg:#2c3136;
+  --k5-bg:#e6effc; --k5-bd:#4a7fd4; --k5-fg:#173f7f;
+  --k6-bg:#fce9ef; --k6-bd:#c9577a; --k6-fg:#6e1f3a;
+  --k7-bg:#e9f5e1; --k7-bd:#5c9a3a; --k7-fg:#2a4d16;
+  --k8-bg:#f3ebe4; --k8-bd:#9c7356; --k8-fg:#4d3322;
   --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){ :root{
-  --bg:#16181b; --fg:#e6e8ea; --muted:#9aa1a8; --line:#2c3035; --line-strong:#4a5057; --panel:#1e2125;
+  --bg:#15171a; --fg:#e6e8ea; --muted:#9ba2a9; --faint:#737a81; --line:#2b2f34; --line-strong:#474d54; --panel:#1d2024;
+  --accent:#86a6ee; --accent-bg:#1b2742; --past:#1a1c1f;
+  --err:#ff8b80; --err-bg:#3a1a18; --err-line:#7a2f29;
+  --warn:#f0c15a; --warn-bg:#352a10; --warn-line:#6e5620;
+  --ok:#6fcf8a; --ok-bg:#16301f;
   --k1-bg:#2a2650; --k1-bd:#9a90ec; --k1-fg:#dcd8fb;
   --k2-bg:#3a2c12; --k2-bd:#d9a24a; --k2-fg:#f6dfb4;
   --k3-bg:#123a30; --k3-bd:#4cc19f; --k3-fg:#c4eee1;
   --k4-bg:#24282c; --k4-bd:#6b7279; --k4-fg:#dfe2e5;
-  --warn:#f08a80; --warn-bg:#3d1c1a; --ok:#6fcf8a; --ok-bg:#16301f; --focus:#8aa8f0; color-scheme:dark }}
+  --k5-bg:#15284a; --k5-bd:#6f9ce6; --k5-fg:#d3e2fa;
+  --k6-bg:#3d1724; --k6-bd:#e07c9b; --k6-fg:#f9d4df;
+  --k7-bg:#1c3313; --k7-bd:#7fbf5c; --k7-fg:#d6eec8;
+  --k8-bg:#33261b; --k8-bd:#c19a7c; --k8-fg:#efdccd;
+  color-scheme:dark }}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5}
 [hidden]{display:none!important}
-.wrap{max-width:1320px;margin:0 auto;padding:24px 16px 48px;display:flex;flex-direction:column;gap:18px}
-header{display:flex;flex-direction:column;gap:6px}
-h1{font-family:var(--f-display);font-weight:600;font-size:26px;line-height:1.2;margin:0;text-wrap:balance}
-h2{font-family:var(--f-display);font-weight:600;font-size:18px;margin:0}
-.lede{color:var(--muted);margin:0;max-width:72ch}
-.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.btn{font:inherit;font-size:13px;color:var(--fg);background:var(--bg);border:1px solid var(--line-strong);border-radius:4px;padding:5px 10px;cursor:pointer}
+a{color:var(--accent)}
+.wrap{max-width:1360px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-direction:column;gap:14px}
+h1{font-weight:600;font-size:22px;line-height:1.25;margin:0;text-wrap:balance}
+h2{font-weight:600;font-size:15px;margin:0}
+h3{font-weight:600;font-size:12px;margin:0;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.hint{font-size:12px;color:var(--muted);margin:0}
+.btn{font:inherit;font-size:13px;color:var(--fg);background:var(--bg);border:1px solid var(--line-strong);border-radius:5px;padding:5px 11px;cursor:pointer;white-space:nowrap}
 .btn:hover{background:var(--panel)}
 .btn.primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-.btn:focus-visible,.blk:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.btn.primary:hover{opacity:.9}
+.btn.danger{color:var(--err);border-color:var(--err-line)}
+.btn.armed{background:var(--err);border-color:var(--err);color:#fff}
+.btn.small{font-size:12px;padding:3px 8px}
 .btn:disabled{opacity:.45;cursor:default}
-.pill{font-size:12px;font-weight:500;border-radius:999px;padding:2px 10px;border:1px solid}
+.link{font:inherit;font-size:12px;background:none;border:0;padding:0;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pill{font-size:12px;font-weight:500;border-radius:999px;padding:2px 10px;border:1px solid;white-space:nowrap}
 .pill.ok{color:var(--ok);background:var(--ok-bg);border-color:var(--ok)}
-.pill.bad{color:var(--warn);background:var(--warn-bg);border-color:var(--warn)}
+.pill.bad{color:var(--err);background:var(--err-bg);border-color:var(--err)}
 .pill.wait{color:var(--muted);background:var(--bg);border-color:var(--line-strong)}
-.spacer{flex:1}
-.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted)}
-.legend span{display:inline-flex;align-items:center;gap:6px}
-.sw{width:14px;height:10px;border-radius:2px;border:1px solid;display:inline-block}
-.sw.k1{background:var(--k1-bg);border-color:var(--k1-bd)} .sw.k2{background:var(--k2-bg);border-color:var(--k2-bd)}
-.sw.k3{background:var(--k3-bg);border-color:var(--k3-bd)} .sw.k4{background:var(--k4-bg);border-color:var(--k4-bd)}
+input[type=text],input[type=password],input[type=url],input[type=date],input[type=number],select,textarea{font:inherit;font-size:13px;color:var(--fg);background:var(--bg);border:1px solid var(--line-strong);border-radius:5px;padding:6px 8px;min-width:0}
+textarea{width:100%;min-height:90px;resize:vertical;line-height:1.45}
+textarea.code{font-family:var(--f-mono);font-size:12px;min-height:140px}
+
+/* top bar */
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between}
+.titlebox{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sub{color:var(--muted);font-size:13px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.who-chip{font:inherit;font-size:12px;color:var(--muted);background:none;border:1px dashed var(--line-strong);border-radius:999px;padding:2px 10px;cursor:pointer}
+.menu{position:relative}
+.menu-list{position:absolute;right:0;top:calc(100% + 4px);z-index:20;min-width:240px;background:var(--bg);border:1px solid var(--line-strong);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:4px;display:flex;flex-direction:column}
+.menu-list button{font:inherit;font-size:13px;text-align:left;background:none;border:0;border-radius:4px;padding:7px 10px;color:var(--fg);cursor:pointer}
+.menu-list button:hover,.menu-list button:focus-visible{background:var(--panel)}
+.menu-list hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+.menu-list .danger{color:var(--err)}
+
+/* alerts */
+.alert{border:1px solid;border-left-width:6px;border-radius:6px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.alert.err{background:var(--err-bg);border-color:var(--err-line);border-left-color:var(--err);color:var(--fg)}
+.alert.err h2{color:var(--err)}
+.alert.warn{background:var(--warn-bg);border-color:var(--warn-line);border-left-color:var(--warn)}
+.alert.warn h2{color:var(--warn)}
+.alert ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.alert li{font-size:13px}
+.alert li .link{margin-left:8px}
+
+/* legend / filter */
+.legend{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+.chipf{font:inherit;font-size:12px;display:inline-flex;align-items:center;gap:6px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 8px;cursor:pointer}
+.chipf:hover{border-color:var(--line-strong)}
+.chipf.on{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
+.chipf .n{color:var(--faint);font-variant-numeric:tabular-nums}
+.legend .static{display:inline-flex;align-items:center;gap:6px;padding:3px 4px}
+.sw{width:14px;height:10px;border-radius:2px;border:1px solid;display:inline-block;flex:none}
 .sw.later{border-style:dashed;border-color:var(--line-strong)}
-.scroller{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
-.board{min-width:1180px;display:grid;grid-template-columns:96px minmax(0,1fr)}
-.cols{display:grid;grid-template-columns:repeat(10,minmax(0,1fr)) minmax(0,1.2fr)}
+.sw.k1,.blk.k1{background:var(--k1-bg);border-color:var(--k1-bd);color:var(--k1-fg)}
+.sw.k2,.blk.k2{background:var(--k2-bg);border-color:var(--k2-bd);color:var(--k2-fg)}
+.sw.k3,.blk.k3{background:var(--k3-bg);border-color:var(--k3-bd);color:var(--k3-fg)}
+.sw.k4,.blk.k4{background:var(--k4-bg);border-color:var(--k4-bd);color:var(--k4-fg)}
+.sw.k5,.blk.k5{background:var(--k5-bg);border-color:var(--k5-bd);color:var(--k5-fg)}
+.sw.k6,.blk.k6{background:var(--k6-bg);border-color:var(--k6-bd);color:var(--k6-fg)}
+.sw.k7,.blk.k7{background:var(--k7-bg);border-color:var(--k7-bd);color:var(--k7-fg)}
+.sw.k8,.blk.k8{background:var(--k8-bg);border-color:var(--k8-bd);color:var(--k8-fg)}
+
+/* board */
+.scroller{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+.board{min-width:1180px;display:grid;grid-template-columns:110px minmax(0,1fr)}
+.cols{display:grid;grid-template-columns:repeat(10,minmax(0,1fr)) minmax(0,1.15fr)}
 .corner{border-bottom:1px solid var(--line)}
-.weeks{grid-column:2;display:grid;grid-template-columns:5fr 5fr 1.2fr;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}
-.weeks div{padding:6px 8px;letter-spacing:.04em;text-transform:uppercase}
+.weeks{display:grid;grid-template-columns:5fr 5fr 1.15fr;border-bottom:1px solid var(--line);font-size:11px;color:var(--muted)}
+.weeks div{padding:6px 8px;letter-spacing:.05em;text-transform:uppercase}
 .weeks div+div{border-left:2px solid var(--line-strong)}
 .hd{border-bottom:1px solid var(--line)}
-.hd>div{padding:8px 8px 7px;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:2px;min-width:0}
-.hd .day{font-weight:600;font-size:13px}
-.hd .day b{font-weight:400;color:var(--muted);margin-left:4px;font-variant-numeric:tabular-nums}
+.hd>div{padding:7px 8px 6px;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:2px;min-width:0}
+.hd .day{font-weight:600;font-size:13px;display:flex;align-items:baseline;gap:5px;flex-wrap:wrap}
+.hd .day b{font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
+.hd .tdy{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--accent);border-radius:3px;padding:0 5px}
 .hd .ms{font-size:11px;color:var(--muted);line-height:1.3}
-.hd .ms.key{color:var(--k1-fg);font-weight:500}
+.hd .ms.key{color:var(--fg);font-weight:600}
+.hd .ms.key::before{content:"◆ ";color:var(--accent)}
 .wk2{border-left:2px solid var(--line-strong)!important}
 .lat{background:var(--panel);border-left:2px solid var(--line-strong)!important}
-.who{padding:10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
-.who strong{font-weight:600}
+.past{background:var(--past)}
+.past .day{color:var(--faint)}
+.today{background:var(--accent-bg)!important;box-shadow:inset 0 2px 0 var(--accent)}
+.who{padding:10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px;min-width:0}
+.who strong{font-weight:600;overflow-wrap:anywhere}
 .who small{color:var(--muted);font-size:11px}
 .lane{position:relative;border-top:1px solid var(--line);min-height:84px}
 .bg{position:absolute;inset:0}
 .bg>div{border-left:1px solid var(--line)}
 .items{position:relative;grid-auto-flow:row dense;row-gap:6px;padding-block:8px}
-.blk{margin:0 4px;text-align:left;font:inherit;font-size:12.5px;line-height:1.3;border:1px solid;border-radius:4px;padding:6px 8px 7px;cursor:grab;touch-action:none;min-width:0;overflow-wrap:anywhere;display:flex;flex-direction:column;gap:2px;user-select:none;-webkit-user-select:none}
-.blk .tk{font-family:var(--f-mono);font-size:10.5px;opacity:.85}
-.blk.k1{background:var(--k1-bg);border-color:var(--k1-bd);color:var(--k1-fg)}
-.blk.k2{background:var(--k2-bg);border-color:var(--k2-bd);color:var(--k2-fg)}
-.blk.k3{background:var(--k3-bg);border-color:var(--k3-bd);color:var(--k3-fg)}
-.blk.k4{background:var(--k4-bg);border-color:var(--k4-bd);color:var(--k4-fg)}
+.blk{margin:0 4px;text-align:left;font:inherit;font-size:12.5px;line-height:1.3;border:1px solid;border-radius:5px;padding:6px 8px 7px;cursor:grab;touch-action:none;min-width:0;overflow-wrap:anywhere;display:flex;flex-direction:column;gap:2px;user-select:none;-webkit-user-select:none;transition:opacity .15s}
+.blk .tk{font-family:var(--f-mono);font-size:10.5px;opacity:.8}
+.blk .lb{font-weight:500}
 .blk.later{background:var(--bg);border-style:dashed;border-color:var(--line-strong);color:var(--muted)}
-.blk.conflict{box-shadow:inset 0 0 0 2px var(--warn)}
-.blk .flag{color:var(--warn);font-weight:600;font-size:11px}
-.blk.sel{outline:2px solid var(--focus);outline-offset:1px}
+.blk.done{opacity:.6}
+.blk.dim{opacity:.22}
+.blk.dim.conflict{opacity:.7}
+.blk.rel{box-shadow:0 0 0 2px var(--accent)}
+.blk.conflict{box-shadow:inset 0 0 0 2px var(--err);background-image:repeating-linear-gradient(135deg,transparent 0 8px,rgba(176,38,28,.07) 8px 16px)}
+.blk .tag{font-size:10.5px;font-weight:600;color:var(--accent)}
+.blk .flag{font-size:10.5px;font-weight:700;color:var(--err)}
+.blk.sel{outline:2px solid var(--fg);outline-offset:2px;opacity:1}
 .blk.dragging{opacity:.35;cursor:grabbing}
-.ghost{position:absolute;top:5px;bottom:5px;border:2px dashed var(--focus);border-radius:5px;pointer-events:none}
-.lower{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
-@media (max-width:820px){.lower{grid-template-columns:minmax(0,1fr)}}
-.card{border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
-.detail .meta{color:var(--muted);font-size:13px}
-.detail .note{margin:0;max-width:65ch}
+.ghost{position:absolute;top:5px;bottom:5px;border:2px dashed var(--accent);border-radius:6px;pointer-events:none}
+
+/* lower panels */
+.lower{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px}
+@media (max-width:860px){.lower{grid-template-columns:minmax(0,1fr)}}
+.card{border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0;background:var(--bg)}
+.detail .meta{color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+.detail .meta span+span::before{content:"·";margin-right:10px;color:var(--faint)}
+.detail .note{margin:0;max-width:72ch;white-space:pre-wrap;background:var(--panel);border-radius:6px;padding:10px 12px;font-size:13.5px}
+.detail .links{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
 .ctrls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.ctrls label{font-size:13px;color:var(--muted)}
-select,input[type=password],input[type=text]{font:inherit;font-size:13px;color:var(--fg);background:var(--bg);border:1px solid var(--line-strong);border-radius:4px;padding:5px 8px}
-.hint{font-size:12px;color:var(--muted);margin:0}
-.err{font-size:13px;color:var(--warn);margin:0}
+.ctrls .sep{flex:1}
 .deps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.deps li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:7px 0;border-top:1px solid var(--line);font-size:13px}
+.deps li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:7px 0;border-top:1px solid var(--line);font-size:13px}
 .deps li:first-child{border-top:0}
 .deps .why{grid-column:1;color:var(--muted);font-size:12px}
-.deps .st{grid-row:1 / span 2;grid-column:2;align-self:center}
-.deps .bad-row .st{color:var(--warn)}
+.deps .st{grid-row:1 / span 2;grid-column:2;align-self:center;font-size:12px;font-weight:600}
+.deps .bad-row .st{color:var(--err)}
 .deps .ok-row .st{color:var(--ok)}
-textarea{width:100%;min-height:160px;font-family:var(--f-mono);font-size:12px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px}
-.gate{max-width:420px;margin:12vh auto 0;display:flex;flex-direction:column;gap:12px}
-.gate form{display:flex;gap:8px;flex-wrap:wrap}
-.gate input{flex:1;min-width:200px}
-details summary{cursor:pointer;font-family:var(--f-display);font-weight:600;font-size:16px}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.checks>li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:2px 8px;padding:8px 0;border-top:1px solid var(--line)}
+.checks>li:first-child{border-top:0}
+.checks .ic{grid-row:1 / span 2;font-weight:700;font-size:13px;line-height:20px;text-align:center;border-radius:50%;width:20px;height:20px}
+.checks .ok .ic{color:var(--ok);background:var(--ok-bg)}
+.checks .bad .ic{color:#fff;background:var(--err)}
+.checks .lab{font-weight:500;font-size:13px}
+.checks .bad .lab{color:var(--err)}
+.checks .det{grid-column:2;color:var(--muted);font-size:12px}
+.checks details{grid-column:2}
+.checks summary,.card>details>summary{cursor:pointer;font-size:12px;color:var(--accent)}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.log li{font-size:12.5px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.log .t{color:var(--faint);font-size:11.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.log b{font-weight:600}
+.foot{color:var(--faint);font-size:12px;display:flex;flex-wrap:wrap;gap:6px 18px;margin:0}
+
+/* gate */
+.gate{max-width:420px;margin:12vh auto 0}
+.gate form{display:flex;flex-direction:column;gap:10px}
+.err-text{font-size:13px;color:var(--err);margin:0;font-weight:500}
+
+/* dialogs */
+dialog{border:1px solid var(--line-strong);border-radius:10px;padding:0;width:min(680px,calc(100vw - 24px));max-height:calc(100vh - 32px);background:var(--bg);color:var(--fg);box-shadow:0 18px 50px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(15,18,22,.45)}
+dialog form{display:flex;flex-direction:column;max-height:calc(100vh - 34px)}
+.dh{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.dh h2{font-size:16px}
+.db{padding:16px 20px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.df{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.df .sep{flex:1}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field>.lab{font-size:12px;font-weight:600;color:var(--muted)}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:10px 12px 12px;margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+legend{font-size:12px;font-weight:600;color:var(--muted);padding:0 4px}
+.rows{display:flex;flex-direction:column;gap:6px}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.row>input,.row>select{flex:1 1 120px}
+.row>input.narrow,.row>select.narrow{flex:0 1 185px}
+fieldset>.btn{align-self:flex-start}
+.row .x{font:inherit;font-size:16px;line-height:1;width:28px;height:28px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--muted);cursor:pointer;flex:none}
+.row .x:hover{color:var(--err);border-color:var(--err-line)}
+.row label.ck{font-size:12px;color:var(--muted);display:inline-flex;gap:4px;align-items:center}
+.drop{border:2px dashed var(--line-strong);border-radius:8px;padding:22px;text-align:center;color:var(--muted);cursor:pointer}
+.drop.over{border-color:var(--accent);background:var(--accent-bg);color:var(--fg)}
+.sum{display:flex;flex-direction:column;gap:8px;font-size:13px}
+.sum .big{font-size:15px;font-weight:600}
+.sum ul{margin:0;padding-left:18px}
+.box-err{background:var(--err-bg);border:1px solid var(--err-line);border-left:6px solid var(--err);border-radius:6px;padding:8px 12px}
+.box-err b{color:var(--err)}
+.box-warn{background:var(--warn-bg);border:1px solid var(--warn-line);border-left:6px solid var(--warn);border-radius:6px;padding:8px 12px}
+.box-ok{background:var(--ok-bg);border:1px solid var(--ok);border-left:6px solid var(--ok);border-radius:6px;padding:8px 12px;color:var(--ok);font-weight:500}
+.past-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.past-list li{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.past-list li:first-child{border-top:0}
+.past-list .info{flex:1;min-width:200px;display:flex;flex-direction:column}
+.past-list .info small{color:var(--muted)}
+.printonly{display:none}
+
+@media print{
+  @page{size:A4 landscape;margin:9mm}
+  body{font-size:11px;background:#fff;color:#000}
+  .noprint,dialog,.lower .detail{display:none!important}
+  .printonly{display:block}
+  .wrap{max-width:none;padding:0;gap:8px}
+  .scroller{overflow:visible;border-color:#bbb}
+  .board{min-width:0}
+  .blk{font-size:9.5px;padding:3px 5px;break-inside:avoid}
+  .blk.dim{opacity:1}
+  .lower{grid-template-columns:1fr}
+  .card{break-inside:avoid;padding:8px 10px}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 </head>
 <body>
@@ -114,13 +249,13 @@ details summary{cursor:pointer;font-family:var(--f-display);font-weight:600;font
 
   <section class="gate card" id="gate" hidden>
     <h1>Plan</h1>
-    <p class="hint">Enter the code. This browser remembers it.</p>
     <form id="gateForm">
-      <label for="codeIn" class="hint" hidden>Code</label>
-      <input id="codeIn" type="password" autocomplete="current-password" placeholder="Code" required>
+      <label class="field"><span class="lab">Your name</span><input id="nameIn" type="text" autocomplete="name" maxlength="40" required></label>
+      <label class="field"><span class="lab">Code</span><input id="codeIn" type="password" autocomplete="current-password" required></label>
       <button class="btn primary" type="submit">Open</button>
+      <p class="hint">This browser remembers both.</p>
+      <p class="err-text" id="gateErr" hidden></p>
     </form>
-    <p class="err" id="gateErr" hidden></p>
   </section>
 
   <section class="card" id="setupMsg" hidden>
@@ -128,69 +263,89 @@ details summary{cursor:pointer;font-family:var(--f-display);font-weight:600;font
     <p>Set <code>SUPABASE_URL</code> and <code>SUPABASE_KEY</code> near the top of the script, then reload.</p>
   </section>
 
-  <div id="app" hidden style="display:flex;flex-direction:column;gap:18px">
-    <header>
-      <h1 id="title">Plan</h1>
-      <p class="lede">Drag a block to another day or person, or select it and use the arrow keys (Shift with arrows changes its length). Dependencies are checked as you move things. Changes are saved for the whole team and appear for everyone within a few seconds.</p>
+  <div id="app" hidden style="display:flex;flex-direction:column;gap:14px">
+    <header class="top">
+      <div class="titlebox">
+        <h1 id="title">Plan</h1>
+        <div class="sub" id="range"></div>
+      </div>
+      <div class="actions noprint">
+        <span id="live" class="pill wait">Connecting…</span>
+        <button class="who-chip" id="whoBtn" type="button" title="Change your name"></button>
+        <button class="btn" id="addBtn" type="button">+ Block</button>
+        <button class="btn" id="editPlanBtn" type="button">Edit plan</button>
+        <div class="menu">
+          <button class="btn" id="menuBtn" type="button" aria-haspopup="true" aria-expanded="false">Plan ▾</button>
+          <div class="menu-list" id="menu" role="menu" hidden>
+            <button type="button" role="menuitem" data-act="download">Download plan (.json)</button>
+            <button type="button" role="menuitem" data-act="upload">Upload new plan…</button>
+            <button type="button" role="menuitem" data-act="past">Past plans…</button>
+            <button type="button" role="menuitem" data-act="snapshot">Save a snapshot to past plans</button>
+            <hr>
+            <button type="button" role="menuitem" data-act="copy">Copy as text</button>
+            <button type="button" role="menuitem" data-act="print">Print or save as PDF</button>
+            <button type="button" role="menuitem" data-act="template">Download empty template</button>
+            <hr>
+            <button type="button" role="menuitem" data-act="reset" class="danger">Reset to the uploaded plan…</button>
+            <button type="button" role="menuitem" data-act="forget">Forget code on this browser</button>
+          </div>
+        </div>
+      </div>
     </header>
 
-    <div class="toolbar">
-      <span id="status" class="pill ok">All dependencies hold</span>
-      <span id="live" class="pill wait">Connecting…</span>
-      <span class="spacer"></span>
-      <button class="btn" id="copyBtn" type="button">Copy as text</button>
-      <button class="btn" id="resetBtn" type="button">Undo all moves</button>
-    </div>
-
-    <div class="legend" aria-label="Legend">
-      <span id="cats" style="display:contents"></span>
-      <span><i class="sw later"></i>Later or parked</span>
-      <span style="color:var(--warn)">Red outline: a dependency is broken</span>
-    </div>
-
+    <div id="alerts"></div>
+    <div class="legend" id="legend" aria-label="Topics"></div>
     <div class="scroller"><div class="board" id="board"></div></div>
 
     <div class="lower">
       <section class="card detail" id="detail" aria-live="polite"></section>
-      <section class="card">
-        <h2>Dependencies</h2>
-        <ul class="deps" id="deps"></ul>
-      </section>
+      <section class="card" id="checks"></section>
     </div>
-    <textarea id="copyout" hidden readonly aria-label="Plan as text"></textarea>
-
-    <details class="card" id="importBox">
-      <summary>Load a new plan</summary>
-      <p class="hint">Paste the plan JSON. Loading it replaces the plan for everyone and clears all moves.</p>
-      <label for="importIn" class="hint">Plan JSON</label>
-      <textarea id="importIn" spellcheck="false"></textarea>
-      <div class="ctrls">
-        <button class="btn" id="importBtn" type="button">Replace the plan</button>
-        <span class="err" id="importErr" hidden></span>
-      </div>
-    </details>
-
-    <p class="hint"><button class="btn" id="forgetBtn" type="button">Forget team code on this browser</button></p>
+    <p class="foot noprint">
+      <span>Drag a block, or select it and use the arrow keys (Shift changes the length).</span>
+      <span>Double-click a block to edit it.</span>
+      <span>Changes reach everyone within a few seconds.</span>
+    </p>
+    <p class="printonly hint" id="printStamp"></p>
   </div>
 </div>
 
+<dialog id="blockDlg"><form method="dialog" id="blockForm"></form></dialog>
+<dialog id="planDlg"><form method="dialog" id="planForm"></form></dialog>
+<dialog id="uploadDlg"><form method="dialog" id="uploadForm"></form></dialog>
+<dialog id="pastDlg"><form method="dialog" id="pastForm"></form></dialog>
+<dialog id="smallDlg"><form method="dialog" id="smallForm"></form></dialog>
+
 <script>
 (function(){
-/* ---- Configuration: fill these two in (see README) ---- */
+"use strict";
+/* ---- Configuration ---- */
 const SUPABASE_URL = "https://lhizftspfexzgdiybmhs.supabase.co";
 const SUPABASE_KEY = "sb_publishable_X3nyIZ2CB2BGTPnvrS0iHw_Qza1iVsx";
-/* ------------------------------------------------------- */
+/* ----------------------- */
 
-const L = 10, POLL_MS = 4000, CODE_KEY = "plan-code";
+const L = 10, POLL_MS = 4000, CODE_KEY = "plan-code", NAME_KEY = "plan-name";
+const COLORS = ["Violet", "Amber", "Teal", "Grey", "Blue", "Rose", "Green", "Brown"];
+const DEP_TYPES = ["before", "same", "apart"];
 const $ = id => document.getElementById(id);
 const el = (tag, cls, txt) => { const e = document.createElement(tag); if(cls) e.className = cls; if(txt != null) e.textContent = txt; return e; };
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k, v){ try{ localStorage.setItem(k, v); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+const clone = o => JSON.parse(JSON.stringify(o));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const q = s => "“" + s + "”";
 
-let code = null; try{ code = localStorage.getItem(CODE_KEY); }catch(e){}
-let DOC = null, DAYS = [], PEOPLE = [], MS = {}, DEPS = [], CATS = [], blocks = [], base = {};
-let lastStamp = null, docStamp = null, sel = null, drag = null, pendingRender = false;
-let liveState = "connecting", saveErr = false;
-const pending = {}, inflight = {}, queued = {}, lastRemote = {};
+let code = store.get(CODE_KEY), who = store.get(NAME_KEY) || "";
+let REV = null, SDOC = null, SPOS = {}, LOG = [], CAN_RESET = false, docKey = null;
+let M = null, blocks = [], base = {};
+let sel = null, drag = null, pendingRender = false, filter = null;
+let liveState = "connecting", fails = 0, saveErr = "", lastAlertKey = "", lastToday = "";
+const pending = {}, inflight = {}, queued = {};
 
+/* ---- server ---- */
 async function rpc(fn, body){
   const h = {"Content-Type":"application/json", "apikey":SUPABASE_KEY};
   if(SUPABASE_KEY.startsWith("eyJ")) h["Authorization"] = "Bearer " + SUPABASE_KEY;
@@ -201,164 +356,367 @@ async function rpc(fn, body){
 }
 const isCodeErr = e => /wrong team code/i.test(String(e && e.message || ""));
 
-/* ---- plan model ---- */
+/* ---- dates ---- */
+const pad = n => String(n).padStart(2, "0");
+const iso = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+const todayISO = () => iso(new Date());
+const validDate = s => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(new Date(s + "T12:00:00"));
+const WD = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 function workdays(start){
-  const out = [], names = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  const d = new Date(start + "T12:00:00");
-  while(out.length < 10){ const w = d.getDay(); if(w !== 0 && w !== 6) out.push({w:names[w], n:d.getDate(), m:d.toLocaleString("en", {month:"short"})}); d.setDate(d.getDate() + 1); }
+  const out = [], d = new Date((validDate(start) ? start : todayISO()) + "T12:00:00");
+  while(out.length < L){
+    const w = d.getDay();
+    if(w !== 0 && w !== 6) out.push({w:WD[w].slice(0, 3), n:d.getDate(), m:d.toLocaleString("en", {month:"short"}), y:d.getFullYear(), iso:iso(d)});
+    d.setDate(d.getDate() + 1);
+  }
   return out;
 }
-const clampPos = v => ({p:Math.max(0, Math.min(PEOPLE.length - 1, Math.round(+v.p || 0))), d:Math.max(0, Math.min(L, Math.round(+v.d || 0))), s:Math.max(1, Math.min(L, Math.round(+v.s || 1)))});
-function loadDoc(doc){
-  DOC = doc;
-  DAYS = workdays(doc.start || new Date().toISOString().slice(0, 10));
-  PEOPLE = (doc.people || []).map(p => Array.isArray(p) ? p : [String(p), ""]);
-  if(!PEOPLE.length) PEOPLE = [["Team", ""]];
-  MS = doc.milestones || {}; DEPS = doc.deps || [];
-  blocks = (doc.blocks || []).map(b => Object.assign({}, b, clampPos(b)));
-  CATS = (doc.cats || []).map(c => Array.isArray(c) ? c : [String(c), String(c)]);
-  blocks.forEach(b => { if(b.c && !CATS.some(c => c[0] === b.c)) CATS.push([b.c, b.c]); });
-  base = {}; blocks.forEach(b => base[b.id] = {p:b.p, d:b.d, s:b.s});
-}
-const byId = id => blocks.find(b => b.id === id);
-const catCls = c => { const i = CATS.findIndex(x => x[0] === c); return "k" + (i < 0 ? 4 : Math.min(i, 3) + 1); };
-const end = b => b.d === L ? L : b.d + b.s - 1;
-const fmt = d => d === L ? "Later" : DAYS[d].w + " " + DAYS[d].n;
-const when = b => b.d === L ? "Later" : (b.s > 1 ? fmt(b.d) + " to " + fmt(end(b)) : fmt(b.d));
-const same = (a, b) => a && b && a.p === b.p && a.d === b.d && a.s === b.s;
-const pos = b => ({p:b.p, d:b.d, s:b.s});
+function nextMonday(){ const d = new Date(); d.setHours(12); do{ d.setDate(d.getDate() + 1); }while(d.getDay() !== 1); return iso(d); }
+const dayLong = x => x.w + " " + x.n + " " + x.m;
 
-function depOk(dp){
-  const a = byId(dp[0]), b = byId(dp[1]); if(!a || !b) return true;
-  if(dp[2] === "same") return a.d !== L && a.d === b.d;
-  if(dp[2] === "apart") return a.d === L || b.d === L || end(a) < b.d || end(b) < a.d;
-  if(b.d === L) return true; if(a.d === L) return false;
-  return end(a) < b.d;
+/* ---- plan model ---- */
+const colorOf = (c, i) => { const n = Math.round(+c); return n >= 1 && n <= 8 ? n : (i % 8) + 1; };
+function clampPos(v, np){
+  const p = clamp(Math.round(+v.p || 0), 0, Math.max(0, np - 1)), d = clamp(Math.round(+v.d || 0), 0, L);
+  let s = clamp(Math.round(+v.s || 1), 1, L); if(d < L) s = Math.min(s, L - d);
+  return {p, d, s};
 }
-const relWord = (dp, isFrom) => dp[2] === "same" ? "Same day as " : dp[2] === "apart" ? "Not on the same day as " : (isFrom ? "Must finish before " : "Needs ");
-function conflicts(){ const s = new Set(); DEPS.forEach(dp => { if(!depOk(dp)) s.add(dp[1]); }); return s; }
-const colCls = i => i === L ? "lat" : (i === 5 ? "wk2" : "");
+function normPeople(doc){
+  const pp = (Array.isArray(doc.people) ? doc.people : []).map(p => Array.isArray(p) ? [String(p[0] == null ? "" : p[0]), String(p[1] == null ? "" : p[1])] : [String(p), ""]);
+  return pp.length ? pp : [["Team", ""]];
+}
+function normCats(doc){
+  const cats = (Array.isArray(doc.cats) ? doc.cats : []).map((c, i) => Array.isArray(c) ? [String(c[0]), String(c[1] == null ? c[0] : c[1]), colorOf(c[2], i)] : [String(c), String(c), (i % 8) + 1]);
+  (Array.isArray(doc.blocks) ? doc.blocks : []).forEach(b => { if(b && b.c && !cats.some(c => c[0] === String(b.c))) cats.push([String(b.c), String(b.c), (cats.length % 8) + 1]); });
+  return cats;
+}
+function model(doc){
+  const m = {doc};
+  m.days = workdays(doc.start);
+  m.people = normPeople(doc);
+  m.cats = normCats(doc);
+  m.blocks = (Array.isArray(doc.blocks) ? doc.blocks : []).filter(b => b && typeof b === "object" && b.id != null && b.id !== "")
+    .map(b => Object.assign({}, b, {id:String(b.id), c:b.c == null ? "" : String(b.c)}, clampPos(b, m.people.length)));
+  m.deps = (Array.isArray(doc.deps) ? doc.deps : []).filter(dp => Array.isArray(dp) && dp.length >= 2).map(dp => [String(dp[0]), String(dp[1]), DEP_TYPES.includes(dp[2]) ? dp[2] : "before", dp[3] == null ? "" : String(dp[3])]);
+  m.ms = doc.milestones && typeof doc.milestones === "object" && !Array.isArray(doc.milestones) ? doc.milestones : {};
+  m.by = {}; m.blocks.forEach(b => m.by[b.id] = b);
+  return m;
+}
+const endOf = b => b.d === L ? L : b.d + b.s - 1;
+function depOk(dp, by){
+  const a = by[dp[0]], b = by[dp[1]]; if(!a || !b) return true;
+  if(dp[2] === "same") return a.d !== L && b.d !== L && a.d === b.d;
+  if(dp[2] === "apart") return a.d === L || b.d === L || endOf(a) < b.d || endOf(b) < a.d;
+  if(b.d === L) return true; if(a.d === L) return false;
+  return endOf(a) < b.d;
+}
+function analyze(m){
+  const broken = m.deps.filter(dp => m.by[dp[0]] && m.by[dp[1]] && !depOk(dp, m.by));
+  const dangling = m.deps.filter(dp => !m.by[dp[0]] || !m.by[dp[1]]);
+  const overlaps = [];
+  const act = m.blocks.filter(b => b.d !== L);
+  for(let i = 0; i < act.length; i++) for(let j = i + 1; j < act.length; j++){
+    const a = act[i], b = act[j];
+    if(a.p === b.p && !(endOf(a) < b.d || endOf(b) < a.d)) overlaps.push([a, b]);
+  }
+  return {broken, dangling, overlaps};
+}
+const catOf = (m, key) => m.cats.find(c => c[0] === key);
+const catCls = (m, key) => { const c = catOf(m, key); return "k" + (c ? c[2] : 4); };
+const fmt = (m, d) => d === L ? "Parked" : m.days[d].w + " " + m.days[d].n;
+const when = (m, b) => b.d === L ? "Parked" : (b.s > 1 ? fmt(m, b.d) + " to " + fmt(m, endOf(b)) : fmt(m, b.d));
+const name = b => b ? (b.l || b.id) : "?";
+function depText(dp, by){
+  const a = name(by[dp[0]]), b = name(by[dp[1]]);
+  if(dp[2] === "same") return q(a) + " and " + q(b) + " must be on the same day";
+  if(dp[2] === "apart") return q(a) + " and " + q(b) + " must not be on the same day";
+  return q(a) + " must finish before " + q(b) + " starts";
+}
+function overlapWhen(m, a, b){ const s = Math.max(a.d, b.d), e = Math.min(endOf(a), endOf(b)); return s === e ? fmt(m, s) : fmt(m, s) + " to " + fmt(m, e); }
+function safeUrl(u){ try{ const x = new URL(String(u).trim()); return (x.protocol === "https:" || x.protocol === "http:") ? x.href : null; }catch(e){ return null; } }
+function jiraBase(doc){
+  const u = doc && doc.jira ? safeUrl(doc.jira) : null; if(!u) return null;
+  if(/\/browse\/?$/.test(u)) return u.replace(/\/?$/, "/");
+  return u.replace(/\/+$/, "") + "/browse/";
+}
+function ticketNodes(t, doc){
+  const frag = document.createDocumentFragment(); if(!t) return frag;
+  const b = jiraBase(doc); if(!b){ frag.append(t); return frag; }
+  const re = /([A-Z][A-Z0-9]+)-(\d+)|\b(\d+)\b/g; let last = 0, key = null, mt;
+  while((mt = re.exec(t))){
+    let k, n;
+    if(mt[1]){ k = key = mt[1]; n = mt[2]; } else if(key){ k = key; n = mt[3]; } else continue;
+    frag.append(t.slice(last, mt.index));
+    const a = el("a", null, mt[0]); a.href = b + k + "-" + n; a.target = "_blank"; a.rel = "noopener noreferrer"; frag.append(a);
+    last = re.lastIndex;
+  }
+  frag.append(t.slice(last)); return frag;
+}
+const byId = id => M && M.by[id];
+const pos = b => ({p:b.p, d:b.d, s:b.s});
+const same = (a, b) => a && b && a.p === b.p && a.d === b.d && a.s === b.s;
+function bakedFrom(doc, posMap){ const d = clone(doc); (d.blocks || []).forEach(b => { const v = posMap[b.id]; if(v){ b.p = v.p; b.d = v.d; b.s = v.s; } }); return d; }
+function currentDoc(){ const d = clone(SDOC); (d.blocks || []).forEach(b => { const x = byId(String(b.id)); if(x){ b.p = x.p; b.d = x.d; b.s = x.s; } }); return d; }
+const newId = p => (p || "b") + Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 5);
+
+/* ---- problems: what must scream ---- */
+function problems(){
+  const errs = [], warns = [];
+  if(liveState === "offline") errs.push({t:"Not connected to the plan database. Changes are not being saved. Retrying every few seconds."});
+  if(saveErr) errs.push({t:"A change was not saved: " + saveErr, dismiss:true});
+  if(!M) return {errs, warns, A:null};
+  const A = analyze(M), today = todayISO(), last = M.days[L - 1];
+  if(today > last.iso) errs.push({t:"This plan ended on " + dayLong(last) + ". Upload the plan for the next two weeks.", act:"upload"});
+  A.broken.forEach(dp => errs.push({t:"Dependency broken: " + depText(dp, M.by) + "." + (dp[3] ? " (" + dp[3] + ")" : ""), id:dp[1]}));
+  A.overlaps.forEach(([a, b]) => errs.push({t:M.people[a.p][0] + " is double-booked: " + q(name(a)) + " and " + q(name(b)) + " overlap on " + overlapWhen(M, a, b) + ".", id:b.id}));
+  if(validDate(SDOC.start) && new Date(SDOC.start + "T12:00:00").getDay() !== 1) warns.push({t:"The plan starts on a " + WD[new Date(SDOC.start + "T12:00:00").getDay()] + ", not a Monday.", act:"plan"});
+  if(A.dangling.length) warns.push({t:A.dangling.length + (A.dangling.length === 1 ? " dependency points" : " dependencies point") + " to a block that is no longer in the plan. They are ignored.", act:"cleandeps"});
+  return {errs, warns, A};
+}
 
 /* ---- rendering ---- */
 function render(focusSel){
-  if(!DOC) return;
-  $("title").textContent = DOC.title || "Plan";
-  const cl = $("cats"); cl.innerHTML = "";
-  CATS.forEach(c => { const s = el("span"); s.append(el("i","sw " + catCls(c[0])), document.createTextNode(c[1])); cl.appendChild(s); });
+  if(!M) return;
+  lastToday = todayISO();
+  const P = problems();
+  renderHeader(P); renderAlerts(P); renderLegend(); renderBoard(P, focusSel); renderDetail(); renderChecks(P);
+}
+function renderHeader(P){
+  $("title").textContent = SDOC.title || "Plan";
+  document.title = (P.errs.length ? "(" + P.errs.length + ") " : "") + (SDOC.title || "Plan");
+  const D = M.days, t = todayISO();
+  let st;
+  if(t < D[0].iso){ const n = Math.round((new Date(D[0].iso + "T12:00:00") - new Date(t + "T12:00:00")) / 864e5); st = n === 1 ? "starts tomorrow" : "starts in " + n + " days"; }
+  else if(t > D[L - 1].iso) st = "ended";
+  else { const i = D.findIndex(x => x.iso >= t); st = "day " + (i + 1) + " of " + L; }
+  $("range").textContent = D[0].w + " " + D[0].n + " " + D[0].m + " to " + D[L - 1].w + " " + D[L - 1].n + " " + D[L - 1].m + " " + D[L - 1].y + " · " + st;
+  $("whoBtn").textContent = "You: " + (who || "set your name");
+}
+function renderAlerts(P){
+  const key = JSON.stringify([P.errs.map(x => x.t), P.warns.map(x => x.t)]);
+  if(key === lastAlertKey) return; lastAlertKey = key;
+  const box = $("alerts"); box.innerHTML = "";
+  const mk = (list, cls, head) => {
+    if(!list.length) return;
+    const s = el("section", "alert " + cls); if(cls === "err") s.setAttribute("role", "alert");
+    s.append(el("h2", null, head));
+    const ul = el("ul");
+    list.forEach(x => {
+      const li = el("li"); li.append(el("span", null, x.t));
+      const act = (txt, fn) => { const b = el("button", "link", txt); b.type = "button"; b.addEventListener("click", fn); li.append(b); };
+      if(x.id) act("Show", () => focusBlock(x.id));
+      if(x.act === "upload") act("Upload new plan", () => openUpload());
+      if(x.act === "plan") act("Edit plan", () => openPlanDlg());
+      if(x.act === "cleandeps") act("Remove them", () => edit(d => { const by = {}; (d.blocks || []).forEach(b => by[b.id] = 1); d.deps = (d.deps || []).filter(dp => by[dp[0]] && by[dp[1]]); }, "removed dependencies to deleted blocks").then(e => { if(e) showSaveErr(e); }));
+      if(x.dismiss) act("Dismiss", () => { saveErr = ""; render(false); });
+      ul.append(li);
+    });
+    s.append(ul); box.append(s);
+  };
+  mk(P.errs, "err", P.errs.length === 1 ? "1 problem needs attention" : P.errs.length + " problems need attention");
+  mk(P.warns, "warn", P.warns.length === 1 ? "Please check" : P.warns.length + " things to check");
+}
+function renderLegend(){
+  const lg = $("legend"); lg.innerHTML = "";
+  if(filter && !catOf(M, filter)) filter = null;
+  M.cats.forEach(c => {
+    const n = M.blocks.filter(b => b.c === c[0]).length;
+    const b = el("button", "chipf" + (filter === c[0] ? " on" : "")); b.type = "button";
+    b.setAttribute("aria-pressed", filter === c[0] ? "true" : "false");
+    b.title = filter === c[0] ? "Show all topics" : "Show only this topic";
+    b.append(el("i", "sw k" + c[2]), document.createTextNode(c[1]), el("span", "n", String(n)));
+    b.addEventListener("click", () => { filter = filter === c[0] ? null : c[0]; render(false); });
+    lg.append(b);
+  });
+  const lt = el("span", "static"); lt.append(el("i", "sw later"), document.createTextNode("Parked")); lg.append(lt);
+  if(filter){ const r = el("button", "link noprint", "Show all"); r.type = "button"; r.addEventListener("click", () => { filter = null; render(false); }); lg.append(r); }
+}
+function relInfo(){
+  const out = {}; if(!(sel && byId(sel))) return out;
+  M.deps.forEach(dp => {
+    if(dp[0] !== sel && dp[1] !== sel) return;
+    const other = dp[0] === sel ? dp[1] : dp[0];
+    out[other] = dp[2] === "same" ? "Same day" : dp[2] === "apart" ? "Not the same day" : (dp[0] === sel ? "Waits on this" : "Needed first");
+  });
+  return out;
+}
+function renderBoard(P, focusSel){
   const board = $("board"); board.innerHTML = "";
-  const bad = conflicts();
-  board.appendChild(el("div","corner"));
-  const wk = el("div","weeks");
-  wk.append(el("div",null,"Week 1, " + DAYS[0].m + " " + DAYS[0].n + " to " + DAYS[4].n),
-            el("div",null,"Week 2, " + DAYS[5].m + " " + DAYS[5].n + " to " + DAYS[9].n), el("div",null,"Later"));
-  board.appendChild(wk);
-  board.appendChild(el("div","corner"));
-  const hd = el("div","cols hd");
+  const D = M.days, t = todayISO();
+  const isPast = i => i < L && D[i].iso < t, isToday = i => i < L && D[i].iso === t;
+  const colCls = i => [i === L ? "lat" : (i === 5 ? "wk2" : ""), isPast(i) ? "past" : "", isToday(i) ? "today" : ""].join(" ").trim();
+  const flagged = {};
+  if(P.A){ P.A.broken.forEach(dp => { flagged[dp[0]] = flagged[dp[0]] || "Dependency broken"; flagged[dp[1]] = "Dependency broken"; });
+           P.A.overlaps.forEach(([a, b]) => { flagged[a.id] = flagged[a.id] || "Double-booked"; flagged[b.id] = flagged[b.id] || "Double-booked"; }); }
+  const rel = relInfo(), hasSel = !!(sel && byId(sel));
+  board.append(el("div", "corner"));
+  const wk = el("div", "weeks");
+  wk.append(el("div", null, "Week 1 · " + D[0].n + " " + D[0].m + " to " + D[4].n + " " + D[4].m), el("div", null, "Week 2 · " + D[5].n + " " + D[5].m + " to " + D[9].n + " " + D[9].m), el("div", null, "Later"));
+  board.append(wk, el("div", "corner"));
+  const hd = el("div", "cols hd");
   for(let i = 0; i <= L; i++){
     const c = el("div", colCls(i));
-    if(i === L){ c.appendChild(el("span","day","Parked")); c.appendChild(el("span","ms","After " + DAYS[9].m + " " + DAYS[9].n)); }
+    if(i === L){ c.append(el("span", "day", "Parked"), el("span", "ms", "After " + D[9].n + " " + D[9].m)); }
     else {
-      const dy = el("span","day", DAYS[i].w); dy.appendChild(el("b",null, DAYS[i].n + " " + DAYS[i].m)); c.appendChild(dy);
-      (MS[i] || MS[String(i)] || []).forEach(m => c.appendChild(el("span","ms" + (m[1] ? " key" : ""), m[0])));
+      const dy = el("span", "day", D[i].w); dy.append(el("b", null, D[i].n + " " + D[i].m)); if(isToday(i)) dy.append(el("span", "tdy", "Today")); c.append(dy);
+      (M.ms[i] || M.ms[String(i)] || []).forEach(m => { if(Array.isArray(m)) c.append(el("span", "ms" + (m[1] ? " key" : ""), String(m[0]))); });
     }
-    hd.appendChild(c);
+    hd.append(c);
   }
-  board.appendChild(hd);
-  PEOPLE.forEach((pp, p) => {
-    const who = el("div","who"); who.appendChild(el("strong",null,pp[0])); if(pp[1]) who.appendChild(el("small",null,pp[1]));
-    board.appendChild(who);
-    const lane = el("div","lane"); lane.dataset.p = p;
-    const bg = el("div","bg cols"); for(let i = 0; i <= L; i++) bg.appendChild(el("div", colCls(i)));
-    lane.appendChild(bg);
-    const items = el("div","items cols");
+  board.append(hd);
+  M.people.forEach((pp, p) => {
+    const w = el("div", "who"); w.append(el("strong", null, pp[0])); if(pp[1]) w.append(el("small", null, pp[1])); board.append(w);
+    const lane = el("div", "lane"); lane.dataset.p = p;
+    const bg = el("div", "bg cols"); for(let i = 0; i <= L; i++) bg.append(el("div", colCls(i)));
+    lane.append(bg);
+    const items = el("div", "items cols");
     blocks.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => {
-      const k = el("button","blk " + (b.d === L ? "later" : catCls(b.c)));
-      k.type = "button"; k.dataset.id = b.id;
+      const cls = ["blk", b.d === L ? "later" : catCls(M, b.c)];
+      if(b.d !== L && D[endOf(b)].iso < t) cls.push("done");
+      if(flagged[b.id]) cls.push("conflict");
+      if(sel === b.id) cls.push("sel");
+      else if(hasSel && rel[b.id]) cls.push("rel");
+      else if(hasSel) cls.push("dim");
+      if(filter && b.c !== filter && sel !== b.id && !cls.includes("dim")) cls.push("dim");
+      const k = el("button", cls.join(" ")); k.type = "button"; k.dataset.id = b.id;
       k.style.gridColumn = (b.d + 1) + " / span " + (b.d === L ? 1 : b.s);
-      if(bad.has(b.id)) k.classList.add("conflict");
-      if(sel === b.id) k.classList.add("sel");
-      k.appendChild(el("span","tk",b.t || "")); k.appendChild(el("span",null,b.l || b.id));
-      if(bad.has(b.id)) k.appendChild(el("span","flag","Dependency broken"));
-      k.setAttribute("aria-label", (b.t || "") + " " + (b.l || "") + ", " + pp[0] + ", " + when(b) + (bad.has(b.id) ? ", dependency broken" : ""));
+      if(b.t) k.append(el("span", "tk", b.t));
+      k.append(el("span", "lb", name(b)));
+      if(hasSel && rel[b.id] && sel !== b.id) k.append(el("span", "tag", rel[b.id]));
+      if(flagged[b.id]) k.append(el("span", "flag", "⚠ " + flagged[b.id]));
+      k.setAttribute("aria-label", (b.t || "") + " " + name(b) + ", " + pp[0] + ", " + when(M, b) + (flagged[b.id] ? ", " + flagged[b.id] : ""));
       wire(k, b.id);
-      items.appendChild(k);
+      items.append(k);
     });
-    lane.appendChild(items);
-    board.appendChild(lane);
+    lane.append(items); board.append(lane);
   });
-  const nb = DEPS.filter(dp => !depOk(dp)).length;
-  $("status").className = "pill " + (nb ? "bad" : "ok");
-  $("status").textContent = nb ? nb + (nb === 1 ? " dependency broken" : " dependencies broken") : "All dependencies hold";
-  renderDeps(); renderDetail();
   if(focusSel && sel){ const f = board.querySelector('[data-id="' + CSS.escape(sel) + '"]'); if(f) f.focus({preventScroll:true}); }
-}
-function renderDeps(){
-  const ul = $("deps"); ul.innerHTML = "";
-  if(!DEPS.length){ ul.appendChild(el("li",null,"No dependencies in this plan.")); return; }
-  DEPS.forEach(dp => {
-    const a = byId(dp[0]), b = byId(dp[1]); if(!a || !b) return;
-    const ok = depOk(dp); const li = el("li", ok ? "ok-row" : "bad-row");
-    li.append(el("span", null, a.l + (dp[2] === "same" ? " = same day as " : dp[2] === "apart" ? " not on the same day as " : " before ") + b.l),
-              el("span","st", ok ? "Holds" : "Broken"), el("span","why", (dp[3] || "") + (dp[3] ? ". " : "") + "Now: " + when(a) + " / " + when(b)));
-    ul.appendChild(li);
-  });
 }
 function renderDetail(){
   const d = $("detail"); d.innerHTML = "";
   const b = sel && byId(sel);
-  if(!b){ d.append(el("h2",null,"Block details"), el("p","hint","Select a block to see its notes and move it with buttons. On a phone, tap a block and use the buttons here; scroll the plan sideways to see all days.")); return; }
-  d.appendChild(el("h2",null,b.l));
-  d.appendChild(el("div","meta", (b.t || "") + " · " + PEOPLE[b.p][0] + " · " + when(b) + (b.d === L ? "" : " · " + b.s + (b.s === 1 ? " day" : " days"))));
-  if(b.n) d.appendChild(el("p","note",b.n));
-  const c = el("div","ctrls");
-  const mk = (txt, fn, dis) => { const x = el("button","btn",txt); x.type = "button"; x.disabled = !!dis; x.addEventListener("click", fn); return x; };
-  c.append(mk("Earlier", () => shift(b, -1), b.d === 0), mk("Later", () => shift(b, 1), b.d === L),
-           mk("Shorter", () => grow(b, -1), b.d === L || b.s <= 1), mk("Longer", () => grow(b, 1), b.d === L || b.d + b.s >= L));
-  const lab = el("label",null,"Person"); lab.htmlFor = "personSel";
-  const s = document.createElement("select"); s.id = "personSel";
-  PEOPLE.forEach((pp, i) => { const o = el("option",null,pp[0]); o.value = i; if(i === b.p) o.selected = true; s.appendChild(o); });
-  s.addEventListener("change", () => { b.p = +s.value; commit(false); });
-  c.append(lab, s, b.d === L ? mk("Back to plan", () => { b.d = L - b.s; commit(false); }) : mk("Park it", () => { b.d = L; commit(false); }));
-  d.appendChild(c);
-  const rel = DEPS.filter(dp => dp[0] === b.id || dp[1] === b.id);
-  if(rel.length){
-    const ul = el("ul","deps");
-    rel.forEach(dp => { const o = byId(dp[0] === b.id ? dp[1] : dp[0]); if(!o) return; const ok = depOk(dp);
-      const li = el("li", ok ? "ok-row" : "bad-row");
-      li.append(el("span",null, relWord(dp, dp[0] === b.id) + o.l), el("span","st", ok ? "Holds" : "Broken"), el("span","why", dp[3] || ""));
-      ul.appendChild(li); });
-    d.appendChild(ul);
+  if(!b){
+    d.append(el("h2", null, "Block details"), el("p", "hint", "Select a block to see its notes, links and dependencies. Its connected blocks are highlighted on the board. On a phone, tap a block and use the buttons here."));
+    return;
   }
-  d.appendChild(el("p","hint","Keyboard: arrow left and right move by a day, up and down change person, Shift with left and right changes the length."));
+  const head = el("div", "ctrls"); head.append(el("h2", null, name(b)), el("span", "sep"));
+  const eb = el("button", "btn small noprint", "Edit"); eb.type = "button"; eb.addEventListener("click", () => openBlockDlg(b.id)); head.append(eb);
+  d.append(head);
+  const meta = el("div", "meta");
+  if(b.t){ const s = el("span"); s.append(ticketNodes(b.t, SDOC)); meta.append(s); }
+  const c = catOf(M, b.c); if(c){ const s = el("span"); s.append(el("i", "sw k" + c[2]), document.createTextNode(" " + c[1])); meta.append(s); }
+  meta.append(el("span", null, M.people[b.p][0]), el("span", null, when(M, b) + (b.d === L ? "" : " (" + b.s + (b.s === 1 ? " day)" : " days)"))));
+  d.append(meta);
+  if(b.n) d.append(el("p", "note", b.n));
+  const links = (Array.isArray(b.links) ? b.links : []).filter(x => Array.isArray(x) && safeUrl(x[1]));
+  if(links.length){ const w = el("div", "links"); links.forEach(x => { const a = el("a", null, x[0] || x[1]); a.href = safeUrl(x[1]); a.target = "_blank"; a.rel = "noopener noreferrer"; w.append(a); }); d.append(w); }
+  const ct = el("div", "ctrls noprint");
+  const mk = (txt, fn, dis) => { const x = el("button", "btn small", txt); x.type = "button"; x.disabled = !!dis; x.addEventListener("click", fn); return x; };
+  ct.append(mk("← Earlier", () => shift(b, -1), b.d === 0), mk("Later →", () => shift(b, 1), b.d === L),
+            mk("Shorter", () => grow(b, -1), b.d === L || b.s <= 1), mk("Longer", () => grow(b, 1), b.d === L || b.d + b.s >= L));
+  const s = pick(M.people.map((pp, i) => [i, pp[0]]), b.p); s.setAttribute("aria-label", "Person");
+  s.addEventListener("change", () => { b.p = +s.value; commit(false); });
+  ct.append(s, b.d === L ? mk("Back to plan", () => { b.d = L - b.s; commit(false); }) : mk("Park it", () => { b.d = L; commit(false); }));
+  d.append(ct);
+  const rel = M.deps.filter(dp => (dp[0] === b.id || dp[1] === b.id) && M.by[dp[0]] && M.by[dp[1]]);
+  if(rel.length){
+    d.append(el("h3", null, "Dependencies"));
+    const ul = el("ul", "deps");
+    rel.forEach(dp => {
+      const ok = depOk(dp, M.by), li = el("li", ok ? "ok-row" : "bad-row");
+      const o = M.by[dp[0] === b.id ? dp[1] : dp[0]];
+      const word = dp[2] === "same" ? "Same day as " : dp[2] === "apart" ? "Not on the same day as " : (dp[0] === b.id ? "Must finish before " : "Needs ");
+      const sp = el("span"); sp.append(document.createTextNode(word)); const lk = el("button", "link", name(o)); lk.type = "button"; lk.addEventListener("click", () => focusBlock(o.id)); sp.append(lk);
+      li.append(sp, el("span", "st", ok ? "Holds" : "⚠ Broken"), el("span", "why", (dp[3] ? dp[3] + ". " : "") + "Now: " + when(M, o)));
+      ul.append(li);
+    });
+    d.append(ul);
+  }
+}
+function relTime(s){
+  const t = new Date(s); if(isNaN(t)) return "";
+  const sec = (Date.now() - t) / 1000;
+  if(sec < 60) return "just now"; if(sec < 3600) return Math.floor(sec / 60) + " min ago"; if(sec < 86400) return Math.floor(sec / 3600) + " h ago";
+  return t.toLocaleString("en", {weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"});
+}
+function logList(items){
+  const lg = el("ul", "log");
+  items.forEach(x => { const li = el("li"); const s = el("span"); s.append(el("b", null, x.who || "Someone"), document.createTextNode(" " + x.what)); li.append(s, el("span", "t", relTime(x.at))); lg.append(li); });
+  return lg;
+}
+function renderChecks(P){
+  const c = $("checks"); c.innerHTML = "";
+  c.append(el("h2", null, "Checks"));
+  const ul = el("ul", "checks");
+  const row = (state, lab, det, extra) => { const li = el("li", state); li.append(el("span", "ic", state === "ok" ? "✓" : "!"), el("span", "lab", lab)); if(det) li.append(el("span", "det", det)); if(extra) li.append(extra); ul.append(li); };
+  if(liveState === "offline") row("bad", "Not connected", "Changes are not saved until the connection is back.");
+  else if(saveErr) row("bad", "Last change not saved", saveErr);
+  else row("ok", "Connected", "Changes reach everyone within a few seconds.");
+  if(M && P.A){
+    const D = M.days, t = todayISO(), A = P.A;
+    if(t > D[L - 1].iso) row("bad", "Plan has ended", "It ended on " + dayLong(D[L - 1]) + ". Upload the next plan.");
+    else row("ok", "Plan is current", dayLong(D[0]) + " to " + dayLong(D[L - 1]));
+    const live = M.deps.filter(dp => M.by[dp[0]] && M.by[dp[1]]);
+    const dl = el("details"); dl.append(el("summary", null, "Show all dependencies"));
+    const dul = el("ul", "deps");
+    live.forEach(dp => {
+      const ok = depOk(dp, M.by), li = el("li", ok ? "ok-row" : "bad-row");
+      li.append(el("span", null, depText(dp, M.by)), el("span", "st", ok ? "Holds" : "⚠ Broken"), el("span", "why", (dp[3] ? dp[3] + ". " : "") + "Now: " + when(M, M.by[dp[0]]) + " / " + when(M, M.by[dp[1]])));
+      dul.append(li);
+    });
+    if(!live.length) dul.append(el("li", null, "No dependencies in this plan."));
+    dl.append(dul);
+    row(A.broken.length ? "bad" : "ok", A.broken.length ? A.broken.length + " of " + live.length + " dependencies broken" : "All " + live.length + " dependencies hold", null, dl);
+    row(A.overlaps.length ? "bad" : "ok", A.overlaps.length ? A.overlaps.length + (A.overlaps.length === 1 ? " double-booking" : " double-bookings") : "Nobody is double-booked",
+        A.overlaps.map(([a, b]) => M.people[a.p][0] + ": " + name(a) + " / " + name(b)).join("; ") || null);
+  }
+  c.append(ul);
+  c.append(el("h3", null, "Recent changes"));
+  if(!LOG.length) c.append(el("p", "hint", "No changes yet."));
+  else c.append(logList(LOG.slice(0, 6)));
+  if(LOG.length > 6){ const more = el("details"); more.append(el("summary", null, "Show more"), logList(LOG.slice(6))); c.append(more); }
+}
+function focusBlock(id){
+  if(!byId(id)) return;
+  sel = id; filter = null; render(true);
+  const f = $("board").querySelector('[data-id="' + CSS.escape(id) + '"]'); if(f) f.scrollIntoView({block:"nearest", inline:"center", behavior:"smooth"});
 }
 
-/* ---- live status and saving ---- */
+/* ---- live status and moves ---- */
 function setLive(){
   const e = $("live");
-  if(liveState === "offline"){ e.className = "pill bad"; e.textContent = "Not connected: retrying"; }
+  if(liveState === "offline"){ e.className = "pill bad"; e.textContent = "Offline: not saving"; }
   else if(liveState === "connecting"){ e.className = "pill wait"; e.textContent = "Connecting…"; }
-  else if(saveErr){ e.className = "pill bad"; e.textContent = "Last change was not saved"; }
+  else if(saveErr){ e.className = "pill bad"; e.textContent = "Not saved"; }
   else if(Object.keys(pending).length){ e.className = "pill wait"; e.textContent = "Saving…"; }
-  else { e.className = "pill ok"; e.textContent = "Live: shared with the team"; }
+  else { e.className = "pill ok"; e.textContent = "Live"; }
 }
+function refreshStatus(){ setLive(); if(M){ const P = problems(); renderAlerts(P); renderChecks(P); } }
+function showSaveErr(msg){ saveErr = msg; setLive(); render(false); }
 function commit(focusSel){ render(focusSel); syncChanged(); }
-function syncChanged(){ blocks.forEach(b => { const r = pending[b.id] || lastRemote[b.id] || base[b.id]; if(!same(r, pos(b))) write(b.id, pos(b)); }); }
-function write(id, v){
+function moveText(b, old){
+  if(b.d === L) return "parked " + q(name(b));
+  if(old && old.p !== b.p) return "moved " + q(name(b)) + " to " + M.people[b.p][0] + ", " + when(M, b);
+  return "moved " + q(name(b)) + " to " + when(M, b);
+}
+function syncChanged(){ blocks.forEach(b => { const r = pending[b.id] || base[b.id]; if(!same(r, pos(b))) write(b.id, pos(b), r); }); }
+function write(id, v, old){
   pending[id] = v;
   if(inflight[id]){ queued[id] = v; setLive(); return; }
   inflight[id] = true; setLive();
-  rpc("plan_move", {code, block:id, np:v.p, nd:v.d, ns:v.s}).then(() => {
-    inflight[id] = false; saveErr = false; lastRemote[id] = v;
-    if(queued[id]){ const q = queued[id]; delete queued[id]; write(id, q); return; }
+  const b = byId(id);
+  rpc("plan_move", {code, block:id, np:v.p, nd:v.d, ns:v.s, who, what:b ? moveText(b, old) : ""}).then(() => {
+    inflight[id] = false; base[id] = v;
+    if(queued[id]){ const qv = queued[id]; delete queued[id]; write(id, qv, v); return; }
     if(pending[id] === v) delete pending[id];
     setLive();
+    if(!Object.keys(pending).length) poll();
   }).catch(err => {
     inflight[id] = false; delete queued[id]; delete pending[id];
-    if(isCodeErr(err)){ toGate("The team code changed. Enter the new code."); return; }
-    saveErr = true;
-    const r = lastRemote[id] || base[id], b = byId(id);
-    if(b && r){ b.p = r.p; b.d = r.d; b.s = r.s; }
-    setLive(); render(false);
+    if(isCodeErr(err)){ toGate("The code was changed. Enter the new code."); return; }
+    const r = base[id], bb = byId(id); if(bb && r){ bb.p = r.p; bb.d = r.d; bb.s = r.s; }
+    showSaveErr(err.message || "unknown error");
+    poll(true);
   });
 }
 function shift(b, dir){
@@ -367,29 +725,54 @@ function shift(b, dir){
   commit(false);
 }
 function grow(b, dir){ if(b.d === L) return; b.s = Math.max(1, Math.min(L - b.d, b.s + dir)); commit(false); }
+const idle = () => new Promise(res => { const t0 = Date.now(); const tick = () => { if(!Object.keys(pending).length || Date.now() - t0 > 8000) res(); else setTimeout(tick, 120); }; tick(); });
+
+/* Edits change the plan text. fn changes a copy of the latest plan; on a clash with
+   someone else's change it is applied again to the newer plan. Returns an error text or "". */
+async function edit(fn, what){
+  await idle();
+  for(let i = 0; i < 4; i++){
+    try{ await poll(true, true); }catch(e){ return isCodeErr(e) ? "The code was changed." : "Could not reach the plan database. Check your connection."; }
+    if(!SDOC) return "The plan is not loaded yet.";
+    const d = bakedFrom(SDOC, SPOS);
+    try{ fn(d); }catch(e){ return e.message || String(e); }
+    try{ await rpc("plan_save", {code, newdoc:d, base_rev:REV, who, what}); }
+    catch(e){
+      if(/changed meanwhile/i.test(e.message)) continue;
+      if(isCodeErr(e)){ toGate("The code was changed. Enter the new code."); return "The code was changed."; }
+      return e.message || "unknown error";
+    }
+    saveErr = ""; await poll(true); return "";
+  }
+  return "Others are changing the plan right now. Please try again in a moment.";
+}
 
 /* ---- polling ---- */
-async function poll(){
+async function poll(force, strict){
   if(!code) return;
   try{
-    const res = await rpc("plan_get", {code});
-    if(liveState !== "live"){ liveState = "live"; setLive(); }
-    if(!res || !res.doc){ return; }
-    if(res.stamp === lastStamp) return;
-    lastStamp = res.stamp;
-    const docKey = JSON.stringify(res.doc);
-    if(docKey !== docStamp){ docStamp = docKey; loadDoc(res.doc); Object.keys(lastRemote).forEach(k => delete lastRemote[k]); if(sel && !byId(sel)) sel = null; }
-    const P = res.pos || {};
+    const res = await rpc("plan_get", (force || REV === null) ? {code} : {code, since:REV});
+    fails = 0;
+    const wasOff = liveState !== "live"; liveState = "live";
+    if(res && res.same){ if(wasOff) refreshStatus(); if(todayISO() !== lastToday) render(false); return; }
+    if(!res || !res.doc){ setLive(); return; }
+    REV = res.rev; SPOS = res.pos || {}; LOG = Array.isArray(res.log) ? res.log : []; CAN_RESET = !!res.can_reset;
+    const k = JSON.stringify(res.doc);
+    if(k !== docKey){ docKey = k; SDOC = res.doc; M = model(SDOC); blocks = M.blocks; if(sel && !byId(sel)) sel = null; }
+    base = {};
+    const src = {}; (SDOC.blocks || []).forEach(x => { if(x && x.id != null) src[String(x.id)] = x; });
     blocks.forEach(b => {
-      const v = P[b.id] ? clampPos(P[b.id]) : base[b.id];
-      lastRemote[b.id] = v;
-      if(pending[b.id]) return;
+      const v = clampPos(SPOS[b.id] || src[b.id] || b, M.people.length);
+      base[b.id] = v;
+      if(pending[b.id]){ Object.assign(b, pending[b.id]); return; }
       b.p = v.p; b.d = v.d; b.s = v.s;
     });
+    setLive();
     if(drag && drag.moved) pendingRender = true; else render(false);
   }catch(err){
-    if(isCodeErr(err)){ toGate("That team code is not right."); return; }
-    liveState = "offline"; setLive();
+    if(isCodeErr(err)){ toGate("That code is not right any more. Enter the new code."); if(strict) throw err; return; }
+    fails++; if(fails >= 2 && liveState !== "offline"){ liveState = "offline"; refreshStatus(); } else setLive();
+    if(strict) throw err;
   }
 }
 
@@ -405,8 +788,8 @@ function showGhost(t, b){
   clearGhost(); if(!t) return;
   const s = t.d === L ? 1 : b.s, d0 = t.d === L ? L : Math.min(t.d, L - s);
   const a = t.cells[d0], z = t.cells[d0 + s - 1];
-  const g = el("div","ghost"); g.style.left = (a.offsetLeft + 3) + "px"; g.style.width = (z.offsetLeft + z.offsetWidth - a.offsetLeft - 6) + "px";
-  t.lane.appendChild(g);
+  const g = el("div", "ghost"); g.style.left = (a.offsetLeft + 3) + "px"; g.style.width = (z.offsetLeft + z.offsetWidth - a.offsetLeft - 6) + "px";
+  t.lane.append(g);
 }
 function wire(k, id){
   k.addEventListener("pointerdown", e => { if(e.button !== 0) return; drag = {id, x:e.clientX, y:e.clientY, moved:false}; try{ k.setPointerCapture(e.pointerId); }catch(_){} });
@@ -418,82 +801,462 @@ function wire(k, id){
   k.addEventListener("pointerup", e => {
     if(!drag || drag.id !== id) return;
     const moved = drag.moved; drag = null; clearGhost(); k.classList.remove("dragging"); pendingRender = false;
-    const b = byId(id);
+    const b = byId(id); if(!b) return;
     if(moved){ const t = target(e.clientX, e.clientY); if(t){ b.p = t.p; b.d = t.d === L ? L : Math.min(t.d, L - b.s); } sel = id; commit(false); }
     else { sel = (sel === id ? null : id); render(true); }
   });
   k.addEventListener("pointercancel", () => { drag = null; clearGhost(); k.classList.remove("dragging"); if(pendingRender){ pendingRender = false; render(false); } });
+  k.addEventListener("dblclick", () => openBlockDlg(id));
   k.addEventListener("keydown", e => {
-    const b = byId(id); let hit = true;
+    const b = byId(id); if(!b) return; let hit = true;
+    if(e.key === "Enter" || e.key === " "){ sel = (sel === id ? null : id); e.preventDefault(); render(true); return; }
+    if(e.key === "Escape"){ sel = null; render(false); return; }
     if(e.key === "ArrowLeft" && e.shiftKey){ if(b.d !== L) b.s = Math.max(1, b.s - 1); }
     else if(e.key === "ArrowRight" && e.shiftKey){ if(b.d !== L) b.s = Math.min(L - b.d, b.s + 1); }
     else if(e.key === "ArrowLeft"){ if(b.d === L) b.d = L - b.s; else b.d = Math.max(0, b.d - 1); }
     else if(e.key === "ArrowRight"){ if(b.d !== L) b.d = (b.d + b.s >= L) ? L : b.d + 1; }
     else if(e.key === "ArrowUp"){ b.p = Math.max(0, b.p - 1); }
-    else if(e.key === "ArrowDown"){ b.p = Math.min(PEOPLE.length - 1, b.p + 1); }
+    else if(e.key === "ArrowDown"){ b.p = Math.min(M.people.length - 1, b.p + 1); }
     else hit = false;
     if(hit){ e.preventDefault(); sel = id; commit(true); }
   });
 }
 
-/* ---- toolbar actions ---- */
-function planText(){
-  const out = [(DOC.title || "Plan") + ", " + fmt(0) + " " + DAYS[0].m + " to " + fmt(9) + " " + DAYS[9].m];
-  PEOPLE.forEach((pp, p) => { out.push("", pp[0]); blocks.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => out.push("- " + when(b) + ": " + (b.t || "") + " " + (b.l || ""))); });
-  const nb = DEPS.filter(dp => !depOk(dp));
-  if(nb.length){ out.push("", "Broken dependencies"); nb.forEach(dp => out.push("- " + byId(dp[0]).l + " / " + byId(dp[1]).l)); }
-  return out.join("\n");
+/* ---- form helpers ---- */
+function inp(type, val, ph){ const i = document.createElement("input"); i.type = type; if(type !== "file" && type !== "checkbox") i.value = val == null ? "" : val; if(ph) i.placeholder = ph; return i; }
+function pick(opts, val){ const s = document.createElement("select"); opts.forEach(([v, t]) => { const o = el("option", null, t); o.value = v; if(String(v) === String(val)) o.selected = true; s.append(o); }); return s; }
+function field(parent, label, input, hint){ const w = el("label", "field"); w.append(el("span", "lab", label), input); if(hint) w.append(el("span", "hint", hint)); parent.append(w); return input; }
+function rowsEditor(parent, title, items, build, addLabel){
+  const fs = el("fieldset"); fs.append(el("legend", null, title));
+  const list = el("div", "rows"), ctl = [];
+  const add = it => {
+    const r = build(it); const x = el("button", "x", "×"); x.type = "button"; x.setAttribute("aria-label", "Remove"); x.title = "Remove";
+    x.addEventListener("click", () => { r.row.remove(); ctl.splice(ctl.indexOf(r), 1); });
+    r.row.append(x); list.append(r.row); ctl.push(r);
+    return r;
+  };
+  items.forEach(add);
+  const ab = el("button", "btn small", addLabel); ab.type = "button"; ab.addEventListener("click", () => { const r = add(null); const f = r.row.querySelector("input,select"); if(f) f.focus(); });
+  fs.append(list, ab); parent.append(fs);
+  return () => ctl.map(r => r.get());
 }
-$("copyBtn").addEventListener("click", () => {
-  const txt = planText(), ta = $("copyout"), btn = $("copyBtn");
-  const fallback = () => { ta.value = txt; ta.hidden = false; ta.focus(); ta.select(); btn.textContent = "Select and copy the text below"; };
-  try{ navigator.clipboard.writeText(txt).then(() => { ta.hidden = true; btn.textContent = "Copied"; setTimeout(() => btn.textContent = "Copy as text", 1600); }).catch(fallback); }catch(e){ fallback(); }
-});
-function twoStep(btn, label, armedLabel, action){
-  let armed = null;
+function dlgShell(form, title){
+  form.innerHTML = "";
+  const h = el("div", "dh"); h.append(el("h2", null, title));
+  const x = el("button", "btn small", "Close"); x.type = "button"; x.addEventListener("click", () => form.closest("dialog").close()); h.append(x);
+  const b = el("div", "db"), f = el("div", "df");
+  form.append(h, b, f);
+  return {body:b, foot:f};
+}
+function twoStep(btn, armedLabel, action){
+  let armed = null; const label = btn.textContent;
   btn.addEventListener("click", () => {
-    if(!armed){ btn.textContent = armedLabel; armed = setTimeout(() => { armed = null; btn.textContent = label; }, 3000); return; }
-    clearTimeout(armed); armed = null; btn.textContent = label; action();
+    if(btn.disabled) return;
+    if(!armed){ btn.textContent = armedLabel; btn.classList.add("armed"); armed = setTimeout(() => { armed = null; btn.textContent = label; btn.classList.remove("armed"); }, 4000); return; }
+    clearTimeout(armed); armed = null; btn.textContent = label; btn.classList.remove("armed"); action();
   });
 }
-twoStep($("resetBtn"), "Undo all moves", "Click again: undo moves for everyone", async () => {
-  try{ await rpc("plan_import", {code, newdoc:DOC}); lastStamp = null; sel = null; await poll(); }
-  catch(err){ saveErr = true; setLive(); }
-});
-twoStep($("importBtn"), "Replace the plan", "Click again to replace it for everyone", async () => {
-  const errEl = $("importErr"); errEl.hidden = true;
-  let doc; try{ doc = JSON.parse($("importIn").value); }catch(e){ errEl.textContent = "That is not valid JSON. Paste the whole plan, from { to }."; errEl.hidden = false; return; }
-  if(!doc || !Array.isArray(doc.blocks) || !doc.start){ errEl.textContent = "The plan needs a start date and a blocks list."; errEl.hidden = false; return; }
-  try{ await rpc("plan_import", {code, newdoc:doc}); $("importIn").value = ""; $("importBox").open = false; lastStamp = null; docStamp = null; sel = null; await poll(); }
-  catch(err){ errEl.textContent = "Could not load the plan: " + err.message; errEl.hidden = false; }
-});
-$("forgetBtn").addEventListener("click", () => { try{ localStorage.removeItem(CODE_KEY); }catch(e){} code = null; toGate(""); });
+function busy(btn, on, txt){ if(on){ btn.dataset.t = btn.textContent; btn.textContent = txt || "Saving…"; btn.disabled = true; } else { btn.textContent = btn.dataset.t || btn.textContent; btn.disabled = false; } }
 
-/* ---- start ---- */
+/* ---- block dialog ---- */
+function openBlockDlg(id){
+  if(!M) return;
+  const isNew = !id;
+  const src = isNew ? null : byId(id); if(!isNew && !src) return;
+  const b = isNew ? {id:newId("b"), p:(sel && byId(sel)) ? byId(sel).p : 0, d:0, s:1, c:filter || (M.cats[0] ? M.cats[0][0] : ""), t:"", l:"", n:"", links:[]} : clone(src);
+  const dlg = $("blockDlg"), {body, foot} = dlgShell($("blockForm"), isNew ? "New block" : "Edit block");
+  const title = field(body, "Title", inp("text", b.l, "What is being done")); title.maxLength = 120;
+  const g = el("div", "grid2"); body.append(g);
+  const ticket = field(g, "Ticket", inp("text", b.t, "e.g. ABC-123 or ABC-12 / 13")); ticket.maxLength = 80;
+  const topic = field(g, "Topic", pick(M.cats.map(c => [c[0], c[1]]).concat([["__new", "New topic…"]]), b.c));
+  const newTopic = field(g, "New topic name", inp("text", "", "e.g. Customer X")); newTopic.closest(".field").hidden = true; newTopic.maxLength = 40;
+  topic.addEventListener("change", () => { newTopic.closest(".field").hidden = topic.value !== "__new"; if(topic.value === "__new") newTopic.focus(); });
+  const person = field(g, "Person", pick(M.people.map((pp, i) => [i, pp[0]]), b.p));
+  const start = field(g, "Start", pick(M.days.map((x, i) => [i, dayLong(x)]).concat([[L, "Parked (later)"]]), b.d));
+  const len = field(g, "Length (days)", inp("number", b.s)); len.min = 1; len.max = L;
+  const notes = field(body, "Notes", document.createElement("textarea"), "Goal, scope, who to talk to. Shown under the board when the block is selected.");
+  notes.value = b.n || ""; notes.maxLength = 2000;
+  const getLinks = rowsEditor(body, "Links", (Array.isArray(b.links) ? b.links : []).filter(Array.isArray), it => {
+    const row = el("div", "row"); const lab = inp("text", it ? it[0] : "", "Label"); lab.className = "narrow"; lab.maxLength = 60; const url = inp("url", it ? it[1] : "", "https://…");
+    row.append(lab, url); return {row, get:() => [lab.value.trim(), url.value.trim()]};
+  }, "+ Add link");
+  const others = M.blocks.filter(x => x.id !== b.id).map(x => [x.id, name(x) + (x.t ? " (" + x.t + ")" : "")]);
+  const relOpts = [["needs", "Needs (comes after)"], ["before", "Must finish before"], ["same", "Same day as"], ["apart", "Not on the same day as"]];
+  const myDeps = M.deps.filter(dp => dp[0] === b.id || dp[1] === b.id).map(dp => ({rel:dp[2] === "before" ? (dp[1] === b.id ? "needs" : "before") : dp[2], other:dp[0] === b.id ? dp[1] : dp[0], why:dp[3]}));
+  const getDeps = rowsEditor(body, "Dependencies", myDeps, it => {
+    const row = el("div", "row"); const r = pick(relOpts, it ? it.rel : "needs"); r.className = "narrow";
+    const o = pick([["", "Choose a block…"]].concat(others), it ? it.other : ""); const why = inp("text", it ? it.why : "", "Why (optional)"); why.maxLength = 160;
+    row.append(r, o, why); return {row, get:() => ({rel:r.value, other:o.value, why:why.value.trim()})};
+  }, "+ Add dependency");
+  const err = el("p", "err-text"); err.hidden = true; body.append(err);
+  if(!isNew){
+    const del = el("button", "btn danger", "Delete block"); del.type = "button";
+    twoStep(del, "Click again to delete", async () => {
+      busy(del, true, "Deleting…");
+      const e = await edit(d => { const n0 = (d.blocks || []).length; d.blocks = (d.blocks || []).filter(x => String(x.id) !== b.id); if(d.blocks.length === n0) throw new Error("This block was already deleted by someone else."); d.deps = (d.deps || []).filter(dp => String(dp[0]) !== b.id && String(dp[1]) !== b.id); }, "deleted " + q(name(src)));
+      busy(del, false);
+      if(e){ err.textContent = e; err.hidden = false; return; }
+      sel = null; dlg.close(); render(false);
+    });
+    foot.append(del);
+  }
+  foot.append(el("span", "sep"));
+  const cancel = el("button", "btn", "Cancel"); cancel.type = "button"; cancel.addEventListener("click", () => dlg.close());
+  const save = el("button", "btn primary", isNew ? "Add block" : "Save"); save.type = "button";
+  foot.append(cancel, save);
+  save.addEventListener("click", async () => {
+    const fail = m => { err.textContent = m; err.hidden = false; };
+    err.hidden = true;
+    const l = title.value.trim(); if(!l){ title.focus(); return fail("Give the block a title."); }
+    if(topic.value === "__new" && !newTopic.value.trim()) return fail("Give the new topic a name.");
+    const links = getLinks().filter(x => x[0] || x[1]);
+    for(const x of links){ if(!safeUrl(x[1])) return fail("This link is not a valid web address: " + (x[1] || "(empty)") + ". It must start with https://"); }
+    const deps = getDeps().filter(x => x.other || x.why);
+    for(const x of deps){ if(!x.other) return fail("Choose a block for each dependency, or remove the empty row."); }
+    const dd = Math.round(+start.value), ss = clamp(Math.round(+len.value || 1), 1, L);
+    if(dd < L && dd + ss > L) return fail("The block runs past the last day. Make it shorter or start earlier.");
+    const data = {l, t:ticket.value.trim(), n:notes.value.trim(), p:+person.value, d:dd, s:ss, links:links.map(x => [x[0], safeUrl(x[1])])};
+    const newCat = topic.value === "__new" ? newTopic.value.trim() : null;
+    busy(save, true);
+    const e = await edit(d => {
+      d.blocks = Array.isArray(d.blocks) ? d.blocks : [];
+      let blk = d.blocks.find(x => String(x.id) === b.id);
+      if(!isNew && !blk) throw new Error("This block was deleted by someone else meanwhile.");
+      if(isNew){ blk = {id:b.id}; d.blocks.push(blk); }
+      let c = topic.value;
+      if(newCat){
+        d.cats = normCats(d);
+        const ex = d.cats.find(x => x[1].toLowerCase() === newCat.toLowerCase());
+        if(ex) c = ex[0]; else { c = newId("t"); const used = d.cats.map(x => x[2]); let col = 1; while(used.includes(col) && col < 8) col++; d.cats.push([c, newCat, col]); }
+      }
+      Object.assign(blk, data, {c, p:clamp(data.p, 0, normPeople(d).length - 1)});
+      const ids = {}; d.blocks.forEach(x => ids[String(x.id)] = 1);
+      const mine = deps.filter(x => ids[x.other]).map(x => x.rel === "needs" ? [x.other, b.id, "before", x.why] : [b.id, x.other, x.rel, x.why]);
+      d.deps = (Array.isArray(d.deps) ? d.deps : []).filter(dp => String(dp[0]) !== b.id && String(dp[1]) !== b.id).concat(mine);
+    }, (isNew ? "added " : "edited ") + q(l));
+    busy(save, false);
+    if(e) return fail(e);
+    sel = b.id; dlg.close(); render(false);
+  });
+  dlg.showModal(); title.focus();
+}
+
+/* ---- plan settings dialog ---- */
+function openPlanDlg(){
+  if(!M) return;
+  const dlg = $("planDlg"), {body, foot} = dlgShell($("planForm"), "Edit plan");
+  const g = el("div", "grid2"); body.append(g);
+  const title = field(g, "Title", inp("text", SDOC.title || "")); title.maxLength = 100;
+  const start = field(g, "Start date", inp("date", validDate(SDOC.start) ? SDOC.start : ""), "Should be a Monday.");
+  const jira = field(body, "Jira address", inp("url", SDOC.jira || "", "https://your-jira-address"), "Ticket numbers on blocks become links to Jira.");
+  const getPeople = rowsEditor(body, "People (one lane each)", M.people.map((pp, i) => ({i, n:pp[0], note:pp[1]})), it => {
+    const row = el("div", "row"); const n = inp("text", it ? it.n : "", "Name"); n.maxLength = 40; const note = inp("text", it ? it.note : "", "Note, e.g. remote on Wednesdays"); note.maxLength = 80;
+    row.append(n, note); return {row, get:() => ({i:it ? it.i : null, n:n.value.trim(), note:note.value.trim()})};
+  }, "+ Add person");
+  const colorOpts = COLORS.map((c, i) => [i + 1, c]);
+  const getCats = rowsEditor(body, "Topics", M.cats.map(c => ({k:c[0], l:c[1], c:c[2]})), it => {
+    const row = el("div", "row"); const sw = el("i", "sw k" + (it ? it.c : 1)); const l = inp("text", it ? it.l : "", "Topic name"); l.maxLength = 40;
+    const c = pick(colorOpts, it ? it.c : 1); c.className = "narrow"; c.setAttribute("aria-label", "Color");
+    c.addEventListener("change", () => { sw.className = "sw k" + c.value; });
+    row.append(sw, l, c); return {row, get:() => ({k:it ? it.k : null, l:l.value.trim(), c:+c.value})};
+  }, "+ Add topic");
+  const msRows = []; Object.keys(M.ms).forEach(k => (Array.isArray(M.ms[k]) ? M.ms[k] : []).forEach(m => { if(Array.isArray(m)) msRows.push({d:+k, t:String(m[0]), key:!!m[1]}); }));
+  msRows.sort((a, b) => a.d - b.d);
+  const getMs = rowsEditor(body, "Milestones and events (shown in the day header)", msRows, it => {
+    const row = el("div", "row"); const d = pick(M.days.map((x, i) => [i, dayLong(x)]), it ? it.d : 0); d.className = "narrow";
+    const t = inp("text", it ? it.t : "", "e.g. Go / no-go"); t.maxLength = 60;
+    const kl = el("label", "ck"); const k = inp("checkbox"); k.checked = !!(it && it.key); kl.append(k, document.createTextNode("Key date"));
+    row.append(d, t, kl); return {row, get:() => ({d:+d.value, t:t.value.trim(), key:k.checked})};
+  }, "+ Add milestone");
+  const err = el("p", "err-text"); err.hidden = true; body.append(err);
+  foot.append(el("span", "sep"));
+  const cancel = el("button", "btn", "Cancel"); cancel.type = "button"; cancel.addEventListener("click", () => dlg.close());
+  const save = el("button", "btn primary", "Save"); save.type = "button"; foot.append(cancel, save);
+  save.addEventListener("click", async () => {
+    const fail = m => { err.textContent = m; err.hidden = false; };
+    err.hidden = true;
+    if(!validDate(start.value)) return fail("Choose a start date.");
+    if(jira.value.trim() && !safeUrl(jira.value)) return fail("The Jira address must be a web address starting with https://");
+    const people = getPeople().filter(x => x.n || x.i != null);
+    if(!people.length) return fail("The plan needs at least one person.");
+    if(people.some(x => !x.n)) return fail("Every person needs a name.");
+    const cats = getCats().filter(x => x.l || x.k);
+    if(cats.some(x => !x.l)) return fail("Every topic needs a name.");
+    const ms = getMs().filter(x => x.t);
+    busy(save, true);
+    const e = await edit(d => {
+      const curPeople = normPeople(d), kept = people.filter(x => x.i != null).map(x => x.i);
+      d.blocks = Array.isArray(d.blocks) ? d.blocks : [];
+      for(let i = 0; i < curPeople.length; i++){
+        if(kept.includes(i)) continue;
+        const n = d.blocks.filter(b => clampPos(b, curPeople.length).p === i).length;
+        if(n) throw new Error(curPeople[i][0] + " still has " + n + (n === 1 ? " block" : " blocks") + ". Move or delete them before removing this person.");
+      }
+      const map = {}; people.forEach((x, ni) => { if(x.i != null) map[x.i] = ni; });
+      d.blocks.forEach(b => { const op = clampPos(b, curPeople.length).p; b.p = map[op] != null ? map[op] : 0; });
+      d.people = people.map(x => [x.n, x.note]);
+      const curCats = normCats(d), keptK = cats.filter(x => x.k).map(x => x.k);
+      curCats.forEach(c => {
+        if(keptK.includes(c[0])) return;
+        const n = d.blocks.filter(b => String(b.c) === c[0]).length;
+        if(n) throw new Error("The topic " + q(c[1]) + " is used by " + n + (n === 1 ? " block" : " blocks") + ". Give them another topic first.");
+      });
+      d.cats = cats.map(x => [x.k || newId("t"), x.l, x.c]);
+      d.title = title.value.trim(); d.start = start.value;
+      if(jira.value.trim()) d.jira = safeUrl(jira.value); else delete d.jira;
+      const m = {}; ms.forEach(x => { (m[x.d] = m[x.d] || []).push([x.t, x.key ? 1 : 0]); }); d.milestones = m;
+    }, "changed the plan settings");
+    busy(save, false);
+    if(e) return fail(e);
+    dlg.close(); render(false);
+  });
+  dlg.showModal(); title.focus();
+}
+
+/* ---- upload, validation and preview ---- */
+function validatePlan(raw){
+  const errors = [], warnings = [];
+  let doc = raw;
+  if(typeof raw === "string"){ try{ doc = JSON.parse(raw); }catch(e){ return {errors:["This is not valid JSON: " + e.message], warnings}; } }
+  if(!doc || typeof doc !== "object" || Array.isArray(doc)) return {errors:["The file must contain one plan object that starts with {."], warnings};
+  if(!validDate(doc.start)) errors.push("Missing or invalid start date. Expected \"start\": \"YYYY-MM-DD\".");
+  if(!Array.isArray(doc.people) || !doc.people.length) errors.push("The plan needs at least one person in \"people\".");
+  const np = Array.isArray(doc.people) ? doc.people.length : 0;
+  if(doc.cats != null && !Array.isArray(doc.cats)) errors.push("\"cats\" (topics) must be a list.");
+  if(doc.jira && !safeUrl(doc.jira)) warnings.push("The Jira address is not a valid web address, so tickets will not be links.");
+  const ids = new Set();
+  if(!Array.isArray(doc.blocks)) errors.push("The plan needs a \"blocks\" list.");
+  else {
+    if(!doc.blocks.length) warnings.push("The plan has no blocks yet.");
+    doc.blocks.forEach((b, i) => {
+      if(!b || typeof b !== "object" || Array.isArray(b)){ errors.push("Block " + (i + 1) + " is not an object."); return; }
+      const nm = b.l ? q(b.l) : (b.id != null ? "Block " + q(b.id) : "Block " + (i + 1));
+      if(b.id == null || b.id === "") errors.push(nm + " has no id.");
+      else if(ids.has(String(b.id))) errors.push("Two blocks share the id " + q(b.id) + ".");
+      else ids.add(String(b.id));
+      if(!b.l) warnings.push(nm + " has no title.");
+      if(!Number.isInteger(b.p) || b.p < 0 || b.p >= np) errors.push(nm + ": person " + JSON.stringify(b.p) + " does not exist (use 0 to " + (np - 1) + ").");
+      if(!Number.isInteger(b.d) || b.d < 0 || b.d > L) errors.push(nm + ": day " + JSON.stringify(b.d) + " is invalid (0 to 9, or 10 for parked).");
+      if(b.s != null && (!Number.isInteger(b.s) || b.s < 1 || b.s > L)) errors.push(nm + ": length " + JSON.stringify(b.s) + " is invalid (1 to 10 days).");
+      else if(Number.isInteger(b.d) && b.d < L && b.d + (b.s || 1) > L) errors.push(nm + " runs past the last day of the plan.");
+      if(b.links != null){ if(!Array.isArray(b.links)) errors.push(nm + ": \"links\" must be a list."); else b.links.forEach(x => { if(!Array.isArray(x) || !safeUrl(x[1])) errors.push(nm + ": a link is not a valid web address."); }); }
+    });
+  }
+  if(doc.deps != null && !Array.isArray(doc.deps)) errors.push("\"deps\" (dependencies) must be a list.");
+  else (doc.deps || []).forEach((dp, i) => {
+    if(!Array.isArray(dp) || dp.length < 3){ errors.push("Dependency " + (i + 1) + " must look like [\"from-id\", \"to-id\", \"before\", \"why\"]."); return; }
+    if(!ids.has(String(dp[0]))) errors.push("A dependency refers to " + q(dp[0]) + ", which is not a block id.");
+    if(!ids.has(String(dp[1]))) errors.push("A dependency refers to " + q(dp[1]) + ", which is not a block id.");
+    if(!DEP_TYPES.includes(dp[2])) errors.push("Dependency type " + q(dp[2]) + " is unknown. Use before, same or apart.");
+    if(String(dp[0]) === String(dp[1])) errors.push("A dependency links " + q(dp[0]) + " to itself.");
+  });
+  if(errors.length) return {errors, warnings};
+  const m = model(doc), A = analyze(m), wd = new Date(doc.start + "T12:00:00").getDay();
+  if(wd !== 1) warnings.push("The plan starts on a " + WD[wd] + ", not a Monday.");
+  if(todayISO() > m.days[L - 1].iso) warnings.push("This plan already ended on " + dayLong(m.days[L - 1]) + ".");
+  A.broken.forEach(dp => warnings.push("Dependency broken: " + depText(dp, m.by) + "."));
+  A.overlaps.forEach(([a, b]) => warnings.push(m.people[a.p][0] + " is double-booked: " + q(name(a)) + " and " + q(name(b)) + "."));
+  const named = Array.isArray(doc.cats) ? doc.cats.map(c => String(Array.isArray(c) ? c[0] : c)) : [];
+  [...new Set(m.blocks.map(b => b.c).filter(c => c && !named.includes(c)))].forEach(c => warnings.push("Topic " + q(c) + " has no name in \"cats\", so it shows as " + q(c) + "."));
+  const info = {title:doc.title || "Untitled plan", range:dayLong(m.days[0]) + " to " + dayLong(m.days[L - 1]) + " " + m.days[L - 1].y,
+    people:m.people.map((pp, i) => pp[0] + " (" + m.blocks.filter(b => b.p === i && b.d !== L).length + ")"), blocks:m.blocks.length,
+    parked:m.blocks.filter(b => b.d === L).length, deps:m.deps.length, topics:m.cats.map(c => c[1])};
+  return {doc, errors, warnings, info};
+}
+function openUpload(preset, sourceLabel){
+  const dlg = $("uploadDlg"), {body, foot} = dlgShell($("uploadForm"), preset ? "Restore a past plan" : "Upload new plan");
+  let chosen = null;
+  const fileIn = inp("file"); fileIn.accept = ".json,application/json"; fileIn.hidden = true;
+  const drop = el("label", "drop"); drop.append(el("div", null, "Drop the plan file here, or click to choose a .json file"), fileIn);
+  const pasteBox = el("details"); pasteBox.append(el("summary", "link", "Or paste the plan text"));
+  const ta = document.createElement("textarea"); ta.className = "code"; ta.spellcheck = false; ta.setAttribute("aria-label", "Plan JSON");
+  const pb = el("button", "btn small", "Check pasted text"); pb.type = "button";
+  pasteBox.append(ta, pb);
+  const out = el("div", "sum");
+  if(!preset) body.append(drop, pasteBox);
+  body.append(out);
+  foot.append(el("p", "hint", "The current plan is saved to Past plans first."), el("span", "sep"));
+  const cancel = el("button", "btn", "Cancel"); cancel.type = "button"; cancel.addEventListener("click", () => dlg.close());
+  const go = el("button", "btn primary", "Replace the plan for everyone"); go.type = "button"; go.disabled = true;
+  foot.append(cancel, go);
+  const show = (raw, label) => {
+    const r = validatePlan(raw); out.innerHTML = ""; chosen = null; go.disabled = true;
+    if(label) out.append(el("div", "hint", "Source: " + label));
+    if(r.errors.length){
+      const b = el("div", "box-err"); b.append(el("b", null, r.errors.length === 1 ? "This plan cannot be loaded. 1 error:" : "This plan cannot be loaded. " + r.errors.length + " errors:"));
+      const ul = el("ul"); r.errors.slice(0, 25).forEach(x => ul.append(el("li", null, x))); if(r.errors.length > 25) ul.append(el("li", null, "…and " + (r.errors.length - 25) + " more."));
+      b.append(ul); out.append(b);
+    } else {
+      const i = r.info;
+      out.append(el("div", "big", i.title), el("div", null, i.range));
+      const ul = el("ul");
+      ul.append(el("li", null, i.blocks + " blocks (" + i.parked + " parked), " + i.deps + " dependencies"), el("li", null, "People: " + i.people.join(", ")), el("li", null, "Topics: " + (i.topics.join(", ") || "none")));
+      out.append(ul);
+      if(!r.warnings.length) out.append(el("div", "box-ok", "✓ All checks pass."));
+      chosen = r.doc; go.disabled = false;
+    }
+    if(r.warnings.length){
+      const b = el("div", "box-warn"); b.append(el("b", null, r.warnings.length === 1 ? "1 thing to check:" : r.warnings.length + " things to check:"));
+      const ul = el("ul"); r.warnings.forEach(x => ul.append(el("li", null, x))); b.append(ul); out.append(b);
+    }
+  };
+  const readFile = f => { if(!f) return; const fr = new FileReader(); fr.onload = () => show(String(fr.result), f.name); fr.onerror = () => show("", f.name); fr.readAsText(f); };
+  fileIn.addEventListener("change", () => readFile(fileIn.files[0]));
+  ["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", e => readFile(e.dataTransfer.files[0]));
+  pb.addEventListener("click", () => show(ta.value, "pasted text"));
+  twoStep(go, "Click again to replace it for everyone", async () => {
+    if(!chosen) return;
+    busy(go, true, "Loading…");
+    try{
+      await rpc("plan_import", {code, newdoc:chosen, who, what:(preset ? "restored a past plan: " : "loaded a new plan: ") + (chosen.title || "Untitled") + " (" + chosen.start + ")"});
+      sel = null; filter = null; saveErr = ""; await poll(true); busy(go, false); dlg.close();
+    }catch(e){ busy(go, false); const x = el("div", "box-err"); x.textContent = "Could not load the plan: " + e.message; out.prepend(x); }
+  });
+  if(preset) show(preset, sourceLabel);
+  dlg.showModal();
+}
+async function openPast(){
+  const dlg = $("pastDlg"), {body, foot} = dlgShell($("pastForm"), "Past plans");
+  body.append(el("p", "hint", "A copy is saved automatically before a plan is replaced or reset, and whenever someone saves a snapshot."));
+  const list = el("ul", "past-list"); body.append(list);
+  list.append(el("li", "hint", "Loading…"));
+  const close = el("button", "btn", "Close"); close.type = "button"; close.addEventListener("click", () => dlg.close());
+  foot.append(el("span", "sep"), close);
+  dlg.showModal();
+  let rows;
+  try{ rows = await rpc("plan_archive_list", {code}); }catch(e){ list.innerHTML = ""; list.append(el("li", "err-text", "Could not load past plans: " + e.message)); return; }
+  list.innerHTML = "";
+  if(!rows || !rows.length){ list.append(el("li", "hint", "No past plans yet.")); return; }
+  const reasons = {replaced:"before a new plan was loaded", "before reset":"before a reset", snapshot:"snapshot"};
+  rows.forEach(r => {
+    const li = el("li"); const info = el("div", "info");
+    const D = validDate(r.start) ? workdays(r.start) : null;
+    info.append(el("strong", null, (r.title || "Untitled plan") + (D ? " · " + D[0].n + " " + D[0].m + " to " + D[L - 1].n + " " + D[L - 1].m : "")),
+                el("small", null, "Saved " + relTime(r.at) + (r.by ? " by " + r.by : "") + " (" + (reasons[r.reason] || r.reason || "saved") + ") · " + r.blocks + " blocks"));
+    const get = () => rpc("plan_archive_get", {code, aid:r.id});
+    const dl = el("button", "btn small", "Download"); dl.type = "button";
+    dl.addEventListener("click", async () => { try{ downloadJSON(await get(), "plan-" + (r.start || "past") + "-saved-" + String(r.at).slice(0, 10) + ".json"); }catch(e){ dl.textContent = "Failed"; } });
+    const rs = el("button", "btn small", "Restore…"); rs.type = "button";
+    rs.addEventListener("click", async () => { try{ const d = await get(); dlg.close(); openUpload(d, "past plan saved " + relTime(r.at)); }catch(e){ rs.textContent = "Failed"; } });
+    li.append(info, dl, rs); list.append(li);
+  });
+}
+
+/* ---- files, text, print ---- */
+function downloadJSON(obj, fname){
+  const blob = new Blob([JSON.stringify(obj, null, 2) + "\n"], {type:"application/json"});
+  const a = el("a"); a.href = URL.createObjectURL(blob); a.download = fname; document.body.append(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function template(){
+  return {
+    _help:{start:"First day, a Monday (YYYY-MM-DD). The plan covers 10 workdays.", people:"One lane per person: [name, note].", cats:"Topics: [key, name, color 1-8].",
+      blocks:"p = person (0 = first), d = start day (0-9, 10 = parked), s = length in days, c = topic key, t = ticket, l = title, n = notes, links = [[label, url]].",
+      deps:"[from, to, type, why]. Types: before (from finishes before to starts), same (same day), apart (not the same day).",
+      milestones:"Day number (0-9) to a list of [text, 1 = key date]."},
+    title:"Two-week plan", start:nextMonday(), jira:"",
+    people:[["Person 1", ""], ["Person 2", ""]],
+    cats:[["t1", "Topic 1", 1], ["t2", "Topic 2", 3], ["oth", "Other", 4]],
+    milestones:{"0":[["Kick-off", 0]], "4":[["Review", 1]]},
+    blocks:[
+      {id:"b1", p:0, d:0, s:2, c:"t1", t:"ABC-1", l:"First task", n:"What this block is about.", links:[]},
+      {id:"b2", p:0, d:2, s:1, c:"t1", t:"ABC-2", l:"Follow-up", n:"", links:[]},
+      {id:"b3", p:1, d:0, s:3, c:"t2", t:"", l:"Another task", n:"", links:[]},
+      {id:"b4", p:1, d:10, s:1, c:"oth", t:"", l:"Parked idea", n:"", links:[]}
+    ],
+    deps:[["b1", "b2", "before", "The first task must be done first"]]
+  };
+}
+function planText(){
+  const D = M.days, out = [(SDOC.title || "Plan") + ", " + dayLong(D[0]) + " to " + dayLong(D[L - 1])];
+  M.people.forEach((pp, p) => { out.push("", pp[0]); blocks.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => out.push("- " + when(M, b) + ": " + (b.t ? b.t + " " : "") + name(b))); });
+  const P = problems(); if(P.errs.length){ out.push("", "Problems"); P.errs.forEach(x => out.push("- " + x.t)); }
+  return out.join("\n");
+}
+function smallMsg(title, content){
+  const dlg = $("smallDlg"), {body, foot} = dlgShell($("smallForm"), title);
+  if(content instanceof Node) body.append(content); else body.append(el("p", null, content));
+  const ok = el("button", "btn primary", "OK"); ok.type = "button"; ok.addEventListener("click", () => dlg.close());
+  foot.append(el("span", "sep"), ok); dlg.showModal(); return {dlg, body, foot, ok};
+}
+function openName(){
+  const dlg = $("smallDlg"), {body, foot} = dlgShell($("smallForm"), "Your name");
+  const n = field(body, "Shown next to your changes in Recent changes", inp("text", who)); n.maxLength = 40;
+  const ok = el("button", "btn primary", "Save"); ok.type = "button";
+  ok.addEventListener("click", () => { const v = n.value.trim(); if(!v){ n.focus(); return; } who = v; store.set(NAME_KEY, v); dlg.close(); if(M) renderHeader(problems()); });
+  foot.append(el("span", "sep"), ok); dlg.showModal(); n.focus();
+}
+async function menuAct(act){
+  if(!M && act !== "forget" && act !== "template") return;
+  if(act === "download") downloadJSON(currentDoc(), "plan-" + (SDOC.start || "current") + ".json");
+  else if(act === "upload") openUpload();
+  else if(act === "past") openPast();
+  else if(act === "template") downloadJSON(template(), "plan-template.json");
+  else if(act === "print"){ $("printStamp").textContent = "Printed " + new Date().toLocaleString("en", {dateStyle:"medium", timeStyle:"short"}); sel = null; render(false); setTimeout(() => window.print(), 50); }
+  else if(act === "copy"){
+    const txt = planText();
+    try{ await navigator.clipboard.writeText(txt); smallMsg("Copied", "The plan is on your clipboard as plain text."); }
+    catch(e){ const ta = document.createElement("textarea"); ta.className = "code"; ta.value = txt; ta.readOnly = true; smallMsg("Copy the plan", ta); ta.focus(); ta.select(); }
+  }
+  else if(act === "snapshot"){
+    try{ await rpc("plan_snapshot", {code, who}); await poll(true); smallMsg("Snapshot saved", "The current plan is saved under Past plans."); }
+    catch(e){ showSaveErr("snapshot failed: " + e.message); }
+  }
+  else if(act === "reset"){
+    if(!CAN_RESET){ smallMsg("Nothing to reset", "There is no uploaded version of this plan to go back to."); return; }
+    const {body, foot, ok} = smallMsg("Reset to the uploaded plan?", "This undoes all moves and edits since the plan was uploaded, for everyone. The current state is saved under Past plans first, so it can be restored.");
+    ok.textContent = "Cancel"; ok.className = "btn";
+    const go = el("button", "btn danger", "Reset for everyone"); go.type = "button"; foot.append(go);
+    go.addEventListener("click", async () => {
+      busy(go, true, "Resetting…");
+      try{ await rpc("plan_reset", {code, who}); sel = null; await poll(true); $("smallDlg").close(); }
+      catch(e){ busy(go, false); body.append(el("p", "err-text", "Reset failed: " + e.message)); }
+    });
+  }
+  else if(act === "forget"){ store.del(CODE_KEY); code = null; toGate(""); }
+}
+
+/* ---- wiring ---- */
+const menu = $("menu"), menuBtn = $("menuBtn");
+const closeMenu = () => { menu.hidden = true; menuBtn.setAttribute("aria-expanded", "false"); };
+menuBtn.addEventListener("click", e => { e.stopPropagation(); const open = menu.hidden; menu.hidden = !open; menuBtn.setAttribute("aria-expanded", String(open)); if(open){ const f = menu.querySelector("button"); if(f) f.focus(); } });
+menu.addEventListener("click", e => { const b = e.target.closest("button[data-act]"); if(!b) return; closeMenu(); menuAct(b.dataset.act); });
+document.addEventListener("click", e => { if(!menu.hidden && !e.target.closest(".menu")) closeMenu(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape" && !menu.hidden){ closeMenu(); menuBtn.focus(); } });
+$("addBtn").addEventListener("click", () => openBlockDlg(null));
+$("editPlanBtn").addEventListener("click", () => openPlanDlg());
+$("whoBtn").addEventListener("click", openName);
+
 let timer = null;
 function toGate(msg){
   if(timer){ clearInterval(timer); timer = null; }
-  try{ localStorage.removeItem(CODE_KEY); }catch(e){}
-  code = null; $("app").hidden = true; $("gate").hidden = false;
-  $("gateErr").textContent = msg || ""; $("gateErr").hidden = !msg; $("codeIn").focus();
+  store.del(CODE_KEY); code = null;
+  document.querySelectorAll("dialog[open]").forEach(d => d.close());
+  $("app").hidden = true; $("gate").hidden = false;
+  $("nameIn").value = who;
+  $("gateErr").textContent = msg || ""; $("gateErr").hidden = !msg;
+  (who ? $("codeIn") : $("nameIn")).focus();
 }
 async function openApp(){
   $("gate").hidden = true; $("app").hidden = false; liveState = "connecting"; setLive();
-  await poll();
+  REV = null; await poll(true);
   if(code && !timer) timer = setInterval(() => { if(document.visibilityState === "visible") poll(); }, POLL_MS);
 }
 document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && code) poll(); });
 $("gateForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const v = $("codeIn").value.trim(); if(!v) return;
-  try{ await rpc("plan_get", {code:v}); }
-  catch(err){ $("gateErr").textContent = isCodeErr(err) ? "That team code is not right." : "Could not reach the plan database. Check your connection and try again."; $("gateErr").hidden = false; return; }
-  code = v; try{ localStorage.setItem(CODE_KEY, v); }catch(e){}
+  const n = $("nameIn").value.trim(), v = $("codeIn").value.trim(); if(!n || !v) return;
+  try{ await rpc("plan_get", {code:v, since:-1}); }
+  catch(err){ $("gateErr").textContent = isCodeErr(err) ? "That code is not right." : "Could not reach the plan database. Check your connection and try again."; $("gateErr").hidden = false; return; }
+  code = v; who = n; store.set(CODE_KEY, v); store.set(NAME_KEY, n);
   $("codeIn").value = ""; openApp();
 });
+window.addEventListener("beforeunload", e => { if(Object.keys(pending).length){ e.preventDefault(); e.returnValue = ""; } });
 
 if(SUPABASE_URL.includes("YOUR-PROJECT") || SUPABASE_KEY.startsWith("YOUR-")){ $("setupMsg").hidden = false; }
-else if(code){ openApp(); }
+else if(code && who){ openApp(); }
 else { toGate(""); }
 })();
 </script>
