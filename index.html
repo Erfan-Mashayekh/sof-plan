@@ -176,6 +176,9 @@ textarea.code{font-family:var(--f-mono);font-size:12px;min-height:140px}
 .checks .bad .ic{color:#fff;background:var(--err)}
 .checks .lab{font-weight:500;font-size:13px}
 .checks .bad .lab{color:var(--err)}
+.checks .off .ic{color:var(--muted);background:var(--panel)}
+.checks .off .lab{color:var(--muted)}
+.checks .lab .link{margin-left:8px;font-weight:400}
 .checks .det{grid-column:2;color:var(--muted);font-size:12px}
 .checks details{grid-column:2}
 .checks summary,.card>details>summary{cursor:pointer;font-size:12px;color:var(--accent)}
@@ -272,6 +275,7 @@ fieldset>.btn{align-self:flex-start}
       <div class="actions noprint">
         <span id="live" class="pill wait">Connecting…</span>
         <button class="who-chip" id="whoBtn" type="button" title="Change your name"></button>
+        <button class="btn" id="undoBtn" type="button" disabled title="Nothing to undo">↶ Undo</button>
         <button class="btn" id="addBtn" type="button">+ Block</button>
         <button class="btn" id="editPlanBtn" type="button">Edit plan</button>
         <div class="menu">
@@ -324,7 +328,7 @@ const SUPABASE_URL = "https://lhizftspfexzgdiybmhs.supabase.co";
 const SUPABASE_KEY = "sb_publishable_X3nyIZ2CB2BGTPnvrS0iHw_Qza1iVsx";
 /* ----------------------- */
 
-const L = 10, POLL_MS = 4000, CODE_KEY = "plan-code", NAME_KEY = "plan-name";
+const L = 10, POLL_MS = 4000, CODE_KEY = "plan-code", NAME_KEY = "plan-name", OV_KEY = "plan-show-overlaps";
 const COLORS = ["Violet", "Amber", "Teal", "Grey", "Blue", "Rose", "Green", "Brown"];
 const DEP_TYPES = ["before", "same", "apart"];
 const $ = id => document.getElementById(id);
@@ -339,7 +343,8 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const q = s => "“" + s + "”";
 
 let code = store.get(CODE_KEY), who = store.get(NAME_KEY) || "";
-let REV = null, SDOC = null, SPOS = {}, LOG = [], CAN_RESET = false, docKey = null;
+let REV = null, SDOC = null, SPOS = {}, LOG = [], CAN_RESET = false, UNDO = null, docKey = null;
+let showOv = store.get(OV_KEY) === "1";
 let M = null, blocks = [], base = {};
 let sel = null, drag = null, pendingRender = false, filter = null;
 let liveState = "connecting", fails = 0, saveErr = "", lastAlertKey = "", lastToday = "";
@@ -468,7 +473,7 @@ function problems(){
   const A = analyze(M), today = todayISO(), last = M.days[L - 1];
   if(today > last.iso) errs.push({t:"This plan ended on " + dayLong(last) + ". Upload the plan for the next two weeks.", act:"upload"});
   A.broken.forEach(dp => errs.push({t:"Dependency broken: " + depText(dp, M.by) + "." + (dp[3] ? " (" + dp[3] + ")" : ""), id:dp[1]}));
-  A.overlaps.forEach(([a, b]) => errs.push({t:M.people[a.p][0] + " is double-booked: " + q(name(a)) + " and " + q(name(b)) + " overlap on " + overlapWhen(M, a, b) + ".", id:b.id}));
+  if(showOv) A.overlaps.forEach(([a, b]) => errs.push({t:M.people[a.p][0] + " is double-booked: " + q(name(a)) + " and " + q(name(b)) + " overlap on " + overlapWhen(M, a, b) + ".", id:b.id}));
   if(validDate(SDOC.start) && new Date(SDOC.start + "T12:00:00").getDay() !== 1) warns.push({t:"The plan starts on a " + WD[new Date(SDOC.start + "T12:00:00").getDay()] + ", not a Monday.", act:"plan"});
   if(A.dangling.length) warns.push({t:A.dangling.length + (A.dangling.length === 1 ? " dependency points" : " dependencies point") + " to a block that is no longer in the plan. They are ignored.", act:"cleandeps"});
   return {errs, warns, A};
@@ -491,6 +496,7 @@ function renderHeader(P){
   else { const i = D.findIndex(x => x.iso >= t); st = "day " + (i + 1) + " of " + L; }
   $("range").textContent = D[0].w + " " + D[0].n + " " + D[0].m + " to " + D[L - 1].w + " " + D[L - 1].n + " " + D[L - 1].m + " " + D[L - 1].y + " · " + st;
   $("whoBtn").textContent = "You: " + (who || "set your name");
+  renderUndo();
 }
 function renderAlerts(P){
   const key = JSON.stringify([P.errs.map(x => x.t), P.warns.map(x => x.t)]);
@@ -547,7 +553,7 @@ function renderBoard(P, focusSel){
   const colCls = i => [i === L ? "lat" : (i === 5 ? "wk2" : ""), isPast(i) ? "past" : "", isToday(i) ? "today" : ""].join(" ").trim();
   const flagged = {};
   if(P.A){ P.A.broken.forEach(dp => { flagged[dp[0]] = flagged[dp[0]] || "Dependency broken"; flagged[dp[1]] = "Dependency broken"; });
-           P.A.overlaps.forEach(([a, b]) => { flagged[a.id] = flagged[a.id] || "Double-booked"; flagged[b.id] = flagged[b.id] || "Double-booked"; }); }
+           if(showOv) P.A.overlaps.forEach(([a, b]) => { flagged[a.id] = flagged[a.id] || "Double-booked"; flagged[b.id] = flagged[b.id] || "Double-booked"; }); }
   const rel = relInfo(), hasSel = !!(sel && byId(sel));
   board.append(el("div", "corner"));
   const wk = el("div", "weeks");
@@ -648,7 +654,7 @@ function renderChecks(P){
   const c = $("checks"); c.innerHTML = "";
   c.append(el("h2", null, "Checks"));
   const ul = el("ul", "checks");
-  const row = (state, lab, det, extra) => { const li = el("li", state); li.append(el("span", "ic", state === "ok" ? "✓" : "!"), el("span", "lab", lab)); if(det) li.append(el("span", "det", det)); if(extra) li.append(extra); ul.append(li); };
+  const row = (state, lab, det, extra) => { const li = el("li", state); li.append(el("span", "ic", state === "ok" ? "✓" : state === "off" ? "–" : "!"), el("span", "lab", lab)); if(det) li.append(el("span", "det", det)); if(extra) li.append(extra); ul.append(li); };
   if(liveState === "offline") row("bad", "Not connected", "Changes are not saved until the connection is back.");
   else if(saveErr) row("bad", "Last change not saved", saveErr);
   else row("ok", "Connected", "Changes reach everyone within a few seconds.");
@@ -667,8 +673,12 @@ function renderChecks(P){
     if(!live.length) dul.append(el("li", null, "No dependencies in this plan."));
     dl.append(dul);
     row(A.broken.length ? "bad" : "ok", A.broken.length ? A.broken.length + " of " + live.length + " dependencies broken" : "All " + live.length + " dependencies hold", null, dl);
-    row(A.overlaps.length ? "bad" : "ok", A.overlaps.length ? A.overlaps.length + (A.overlaps.length === 1 ? " double-booking" : " double-bookings") : "Nobody is double-booked",
+    const toggle = el("button", "link noprint", showOv ? "Turn off" : "Turn on"); toggle.type = "button";
+    toggle.addEventListener("click", () => { showOv = !showOv; store.set(OV_KEY, showOv ? "1" : "0"); lastAlertKey = ""; render(false); });
+    if(!showOv) row("off", "Double-booking check is off", "Turn it on to flag people with two or more blocks on the same day. Only on this browser.");
+    else row(A.overlaps.length ? "bad" : "ok", A.overlaps.length ? A.overlaps.length + (A.overlaps.length === 1 ? " double-booking" : " double-bookings") : "Nobody is double-booked",
         A.overlaps.map(([a, b]) => M.people[a.p][0] + ": " + name(a) + " / " + name(b)).join("; ") || null);
+    ul.lastChild.querySelector(".lab").append(toggle);
   }
   c.append(ul);
   c.append(el("h3", null, "Recent changes"));
@@ -756,7 +766,7 @@ async function poll(force, strict){
     const wasOff = liveState !== "live"; liveState = "live";
     if(res && res.same){ if(wasOff) refreshStatus(); if(todayISO() !== lastToday) render(false); return; }
     if(!res || !res.doc){ setLive(); return; }
-    REV = res.rev; SPOS = res.pos || {}; LOG = Array.isArray(res.log) ? res.log : []; CAN_RESET = !!res.can_reset;
+    REV = res.rev; SPOS = res.pos || {}; LOG = Array.isArray(res.log) ? res.log : []; CAN_RESET = !!res.can_reset; UNDO = res.undo || null;
     const k = JSON.stringify(res.doc);
     if(k !== docKey){ docKey = k; SDOC = res.doc; M = model(SDOC); blocks = M.blocks; if(sel && !byId(sel)) sel = null; }
     base = {};
@@ -820,6 +830,32 @@ function wire(k, id){
     else hit = false;
     if(hit){ e.preventDefault(); sel = id; commit(true); }
   });
+}
+
+/* ---- undo: reverts the most recent change on the board, for everyone ---- */
+function renderUndo(){
+  const b = $("undoBtn");
+  if(undoing) return;
+  if(!UNDO){ b.disabled = true; b.title = "Nothing to undo"; return; }
+  b.disabled = false;
+  b.title = "Undo " + (UNDO.who ? UNDO.who + ": " : "") + UNDO.what + " (" + relTime(UNDO.at) + ")  [Ctrl+Z]";
+}
+let undoing = false;
+async function undo(confirmed){
+  if(undoing || !M) return;
+  await idle(); await poll(true);
+  const u = UNDO; if(!u){ renderUndo(); return; }
+  if(!confirmed && u.who && u.who !== who){
+    const {foot, ok} = smallMsg("Undo someone else's change?", "The last change on the board was made by " + u.who + ": " + u.what + " (" + relTime(u.at) + "). Undo it for everyone?");
+    ok.textContent = "Cancel"; ok.className = "btn";
+    const go = el("button", "btn primary", "Undo it"); go.type = "button"; foot.append(go);
+    go.addEventListener("click", () => { $("smallDlg").close(); undo(true); });
+    return;
+  }
+  const b = $("undoBtn"); busy(b, true, "Undoing\u2026"); undoing = true;
+  try{ await rpc("plan_undo", {code, who, expect:u.id}); saveErr = ""; }
+  catch(e){ undoing = false; busy(b, false); showSaveErr("undo failed: " + e.message); }
+  undoing = false; busy(b, false); await poll(true); renderUndo();
 }
 
 /* ---- form helpers ---- */
@@ -1055,7 +1091,7 @@ function validatePlan(raw){
   if(wd !== 1) warnings.push("The plan starts on a " + WD[wd] + ", not a Monday.");
   if(todayISO() > m.days[L - 1].iso) warnings.push("This plan already ended on " + dayLong(m.days[L - 1]) + ".");
   A.broken.forEach(dp => warnings.push("Dependency broken: " + depText(dp, m.by) + "."));
-  A.overlaps.forEach(([a, b]) => warnings.push(m.people[a.p][0] + " is double-booked: " + q(name(a)) + " and " + q(name(b)) + "."));
+  if(showOv) A.overlaps.forEach(([a, b]) => warnings.push(m.people[a.p][0] + " is double-booked: " + q(name(a)) + " and " + q(name(b)) + "."));
   const named = Array.isArray(doc.cats) ? doc.cats.map(c => String(Array.isArray(c) ? c[0] : c)) : [];
   [...new Set(m.blocks.map(b => b.c).filter(c => c && !named.includes(c)))].forEach(c => warnings.push("Topic " + q(c) + " has no name in \"cats\", so it shows as " + q(c) + "."));
   const info = {title:doc.title || "Untitled plan", range:dayLong(m.days[0]) + " to " + dayLong(m.days[L - 1]) + " " + m.days[L - 1].y,
@@ -1119,7 +1155,7 @@ function openUpload(preset, sourceLabel){
 }
 async function openPast(){
   const dlg = $("pastDlg"), {body, foot} = dlgShell($("pastForm"), "Past plans");
-  body.append(el("p", "hint", "A copy is saved automatically before a plan is replaced or reset, and whenever someone saves a snapshot."));
+  body.append(el("p", "hint", "A copy is saved automatically before a plan is replaced or reset, and whenever someone saves a snapshot. Deleting a past plan cannot be undone."));
   const list = el("ul", "past-list"); body.append(list);
   list.append(el("li", "hint", "Loading…"));
   const close = el("button", "btn", "Close"); close.type = "button"; close.addEventListener("click", () => dlg.close());
@@ -1140,7 +1176,13 @@ async function openPast(){
     dl.addEventListener("click", async () => { try{ downloadJSON(await get(), "plan-" + (r.start || "past") + "-saved-" + String(r.at).slice(0, 10) + ".json"); }catch(e){ dl.textContent = "Failed"; } });
     const rs = el("button", "btn small", "Restore…"); rs.type = "button";
     rs.addEventListener("click", async () => { try{ const d = await get(); dlg.close(); openUpload(d, "past plan saved " + relTime(r.at)); }catch(e){ rs.textContent = "Failed"; } });
-    li.append(info, dl, rs); list.append(li);
+    const rm = el("button", "btn small danger", "Delete"); rm.type = "button";
+    twoStep(rm, "Click again to delete", async () => {
+      busy(rm, true, "Deleting\u2026");
+      try{ await rpc("plan_archive_delete", {code, aid:r.id, who}); li.remove(); if(!list.children.length) list.append(el("li", "hint", "No past plans yet.")); poll(true); }
+      catch(e){ busy(rm, false); rm.textContent = "Failed: " + e.message; }
+    });
+    li.append(info, dl, rs, rm); list.append(li);
   });
 }
 
@@ -1226,6 +1268,13 @@ menu.addEventListener("click", e => { const b = e.target.closest("button[data-ac
 document.addEventListener("click", e => { if(!menu.hidden && !e.target.closest(".menu")) closeMenu(); });
 document.addEventListener("keydown", e => { if(e.key === "Escape" && !menu.hidden){ closeMenu(); menuBtn.focus(); } });
 $("addBtn").addEventListener("click", () => openBlockDlg(null));
+$("undoBtn").addEventListener("click", () => undo());
+document.addEventListener("keydown", e => {
+  if(!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== "z") return;
+  if(!M || $("app").hidden || document.querySelector("dialog[open]")) return;
+  const t = e.target; if(t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+  e.preventDefault(); undo();
+});
 $("editPlanBtn").addEventListener("click", () => openPlanDlg());
 $("whoBtn").addEventListener("click", openName);
 
