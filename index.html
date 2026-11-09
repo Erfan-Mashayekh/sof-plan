@@ -113,6 +113,10 @@ textarea.code{font-family:var(--f-mono);font-size:12px;min-height:140px}
 .board{min-width:1180px;display:grid;grid-template-columns:110px minmax(0,1fr)}
 .cols{display:grid;grid-template-columns:repeat(10,minmax(0,1fr)) minmax(0,1.15fr)}
 .corner{border-bottom:1px solid var(--line)}
+.weeknav{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.weeknav .lbl{font-weight:600;font-size:13px}
+.weeknav .hint{flex-basis:100%}
+.weeknav .btn{min-width:34px}
 .weeks{display:grid;grid-template-columns:5fr 5fr 1.15fr;border-bottom:1px solid var(--line);font-size:11px;color:var(--muted)}
 .weeks div{padding:6px 8px;letter-spacing:.05em;text-transform:uppercase}
 .weeks div+div{border-left:2px solid var(--line-strong)}
@@ -310,6 +314,7 @@ fieldset>.btn{align-self:flex-start}
 
     <div id="alerts"></div>
     <div class="legend" id="legend" aria-label="Topics"></div>
+    <div class="weeknav noprint" id="weeknav"></div>
     <div class="scroller"><div class="board" id="board"></div></div>
 
     <div class="lower">
@@ -357,7 +362,7 @@ let code = store.get(CODE_KEY), who = store.get(NAME_KEY) || "";
 let REV = null, SDOC = null, SPOS = {}, LOG = [], CAN_RESET = false, UNDO = null, REDO = null, OFF = {}, docKey = null;
 let showOv = store.get(OV_KEY) === "1";
 let M = null, blocks = [], base = {};
-let sel = null, drag = null, pendingRender = false, filter = null;
+let sel = null, drag = null, pendingRender = false, filter = null, view = 0; /* view 0 = this plan, 1 = the two weeks after it */
 let liveState = "connecting", fails = 0, saveErr = "", lastAlertKey = "", lastToday = "";
 const pending = {}, inflight = {}, queued = {};
 
@@ -378,9 +383,9 @@ const iso = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.get
 const todayISO = () => iso(new Date());
 const validDate = s => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(new Date(s + "T12:00:00"));
 const WD = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-function workdays(start){
-  const out = [], d = new Date((validDate(start) ? start : todayISO()) + "T12:00:00");
-  while(out.length < L){
+function workdays(start, count){
+  const out = [], d = new Date((validDate(start) ? start : todayISO()) + "T12:00:00"), n = count || L;
+  while(out.length < n){
     const w = d.getDay();
     if(w !== 0 && w !== 6) out.push({w:WD[w].slice(0, 3), n:d.getDate(), m:d.toLocaleString("en", {month:"short"}), y:d.getFullYear(), iso:iso(d)});
     d.setDate(d.getDate() + 1);
@@ -389,6 +394,12 @@ function workdays(start){
 }
 function nextMonday(){ const d = new Date(); d.setHours(12); do{ d.setDate(d.getDate() + 1); }while(d.getDay() !== 1); return iso(d); }
 const dayLong = x => x.w + " " + x.n + " " + x.m;
+/* ISO 8601 week of the year (weeks start on Monday, week 1 holds the first Thursday). */
+function isoWeek(s){
+  const [y, mo, da] = s.split("-").map(Number), d = new Date(Date.UTC(y, mo - 1, da));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  return Math.ceil(((d - Date.UTC(d.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7);
+}
 
 /* ---- plan model ---- */
 const colorOf = (c, i) => { const n = Math.round(+c); return n >= 1 && n <= 8 ? n : (i % 8) + 1; };
@@ -408,7 +419,8 @@ function normCats(doc){
 }
 function model(doc){
   const m = {doc};
-  m.days = workdays(doc.start);
+  const all = workdays(doc.start, 2 * L);
+  m.days = all.slice(0, L); m.next = all.slice(L);
   m.people = normPeople(doc);
   m.cats = normCats(doc);
   m.blocks = (Array.isArray(doc.blocks) ? doc.blocks : []).filter(b => b && typeof b === "object" && b.id != null && b.id !== "")
@@ -572,7 +584,8 @@ function relInfo(){
 }
 function renderBoard(P, focusSel){
   const board = $("board"); board.innerHTML = "";
-  const D = M.days, t = todayISO();
+  const D = view ? M.next : M.days, t = todayISO();
+  renderWeekNav(D);
   const isPast = i => i < L && D[i].iso < t, isToday = i => i < L && D[i].iso === t;
   const colCls = i => [i === L ? "lat" : (i === 5 ? "wk2" : ""), isPast(i) ? "past" : "", isToday(i) ? "today" : ""].join(" ").trim();
   const flagged = {};
@@ -582,15 +595,15 @@ function renderBoard(P, focusSel){
   const rel = relInfo(), hasSel = !!(sel && byId(sel));
   board.append(el("div", "corner"));
   const wk = el("div", "weeks");
-  wk.append(el("div", null, "Week 1 · " + D[0].n + " " + D[0].m + " to " + D[4].n + " " + D[4].m), el("div", null, "Week 2 · " + D[5].n + " " + D[5].m + " to " + D[9].n + " " + D[9].m), el("div", null, "Later"));
+  wk.append(el("div", null, "Week " + isoWeek(D[0].iso) + " · " + D[0].n + " " + D[0].m + " to " + D[4].n + " " + D[4].m), el("div", null, "Week " + isoWeek(D[5].iso) + " · " + D[5].n + " " + D[5].m + " to " + D[9].n + " " + D[9].m), el("div", null, "Later"));
   board.append(wk, el("div", "corner"));
   const hd = el("div", "cols hd");
   for(let i = 0; i <= L; i++){
     const c = el("div", colCls(i));
-    if(i === L){ c.append(el("span", "day", "Parked"), el("span", "ms", "After " + D[9].n + " " + D[9].m)); }
+    if(i === L){ c.append(el("span", "day", "Parked"), el("span", "ms", view ? "Shown with this plan's weeks" : "After " + D[9].n + " " + D[9].m)); }
     else {
       const dy = el("span", "day", D[i].w); dy.append(el("b", null, D[i].n + " " + D[i].m)); if(isToday(i)) dy.append(el("span", "tdy", "Today")); c.append(dy);
-      (M.ms[i] || M.ms[String(i)] || []).forEach(m => { if(Array.isArray(m)) c.append(el("span", "ms" + (m[1] ? " key" : ""), String(m[0]))); });
+      if(!view) (M.ms[i] || M.ms[String(i)] || []).forEach(m => { if(Array.isArray(m)) c.append(el("span", "ms" + (m[1] ? " key" : ""), String(m[0]))); });
     }
     hd.append(c);
   }
@@ -605,7 +618,7 @@ function renderBoard(P, focusSel){
     const bg = el("div", "bg cols"); for(let i = 0; i <= L; i++){ const c = el("div", colCls(i)); if(i < L && off.has(D[i].iso)){ c.classList.add("off"); c.title = pp[0] + " is off"; } bg.append(c); }
     lane.append(bg);
     const items = el("div", "items cols");
-    blocks.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => {
+    if(!view) blocks.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => {
       const cls = ["blk", b.d === L ? "later" : catCls(M, b.c)];
       if(b.d !== L && D[endOf(b)].iso < t) cls.push("done");
       if(flagged[b.id]) cls.push("conflict");
@@ -626,6 +639,14 @@ function renderBoard(P, focusSel){
     lane.append(items); board.append(lane);
   });
   if(focusSel && sel){ const f = board.querySelector('[data-id="' + CSS.escape(sel) + '"]'); if(f) f.focus({preventScroll:true}); }
+}
+function renderWeekNav(D){
+  const nav = $("weeknav"); nav.innerHTML = "";
+  const btn = (txt, label, dis, v) => { const b = el("button", "btn small", txt); b.type = "button"; b.title = label; b.setAttribute("aria-label", label); b.disabled = dis; b.addEventListener("click", () => { view = v; render(false); }); return b; };
+  nav.append(btn("‹", "Show this plan's two weeks", view === 0, 0),
+             el("span", "lbl", "Weeks " + isoWeek(D[0].iso) + " and " + isoWeek(D[5].iso) + (view ? " · next two weeks" : " · this plan")),
+             btn("›", "Show the next two weeks", view === 1, 1));
+  if(view) nav.append(el("p", "hint", "Not planned yet. Days off already show here; blocks appear when the plan for these weeks is uploaded."));
 }
 function renderDetail(){
   const d = $("detail"); d.innerHTML = "";
@@ -719,7 +740,7 @@ function renderChecks(P){
 }
 function focusBlock(id){
   if(!byId(id)) return;
-  sel = id; filter = null; render(true);
+  sel = id; filter = null; view = 0; render(true);
   const f = $("board").querySelector('[data-id="' + CSS.escape(id) + '"]'); if(f) f.scrollIntoView({block:"nearest", inline:"center", behavior:"smooth"});
 }
 
@@ -1030,7 +1051,7 @@ function openOffDlg(p){
   const grid = el("div", "offgrid");
   for(let wk = 0; wk < 4; wk++){
     const first = days[wk * 5], plan = days.slice(wk * 5, wk * 5 + 5).some(x => inPlan.has(x.iso));
-    grid.append(el("span", "wk", "Week of " + first.n + " " + first.m + (plan ? "" : " (next plan)")));
+    grid.append(el("span", "wk", "Week " + isoWeek(first.iso) + " · " + first.n + " " + first.m + (plan ? "" : " (next plan)")));
     days.slice(wk * 5, wk * 5 + 5).forEach(x => {
       const lab = el("label", "offday" + (inPlan.has(x.iso) ? "" : " outside")); const cb = inp("checkbox"); cb.checked = cur.has(x.iso);
       lab.append(cb, document.createTextNode(x.w + " " + x.n)); lab.title = x.w + " " + x.n + " " + x.m; grid.append(lab); boxes.push({x, cb});
@@ -1230,7 +1251,7 @@ function openUpload(preset, sourceLabel){
     busy(go, true, "Loading…");
     try{
       await rpc("plan_import", {code, newdoc:chosen, who, what:(preset ? "restored a past plan: " : "loaded a new plan: ") + (chosen.title || "Untitled") + " (" + chosen.start + ")"});
-      sel = null; filter = null; saveErr = ""; await poll(true); busy(go, false); dlg.close();
+      sel = null; filter = null; view = 0; saveErr = ""; await poll(true); busy(go, false); dlg.close();
     }catch(e){ busy(go, false); const x = el("div", "box-err"); x.textContent = "Could not load the plan: " + e.message; out.prepend(x); }
   });
   if(preset) show(preset, sourceLabel);
