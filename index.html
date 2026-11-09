@@ -12,7 +12,7 @@
   --accent:#2f5bc4; --accent-bg:#edf2fc; --past:#f4f5f6;
   --err:#b0261c; --err-bg:#fdeceb; --err-line:#e6a19b;
   --warn:#7d5500; --warn-bg:#fff5dc; --warn-line:#e3c15f;
-  --ok:#2a7440; --ok-bg:#e7f3ea; --off-stripe:rgba(40,46,52,.09);
+  --ok:#2a7440; --ok-bg:#e7f3ea; --off-stripe:rgba(40,46,52,.09); --remote-dot:rgba(47,91,196,.28);
   --k1-bg:#efedfb; --k1-bd:#7a6fd0; --k1-fg:#3a3285;
   --k2-bg:#fbf1df; --k2-bd:#c18a2a; --k2-fg:#6b4508;
   --k3-bg:#e4f4ef; --k3-bd:#2f9a7c; --k3-fg:#0d4e3e;
@@ -30,7 +30,7 @@
   --accent:#86a6ee; --accent-bg:#1b2742; --past:#1a1c1f;
   --err:#ff8b80; --err-bg:#3a1a18; --err-line:#7a2f29;
   --warn:#f0c15a; --warn-bg:#352a10; --warn-line:#6e5620;
-  --ok:#6fcf8a; --ok-bg:#16301f; --off-stripe:rgba(255,255,255,.08);
+  --ok:#6fcf8a; --ok-bg:#16301f; --off-stripe:rgba(255,255,255,.08); --remote-dot:rgba(134,166,238,.3);
   --k1-bg:#2a2650; --k1-bd:#9a90ec; --k1-fg:#dcd8fb;
   --k2-bg:#3a2c12; --k2-bd:#d9a24a; --k2-fg:#f6dfb4;
   --k3-bg:#123a30; --k3-bd:#4cc19f; --k3-fg:#c4eee1;
@@ -141,13 +141,18 @@ textarea.code{font-family:var(--f-mono);font-size:12px;min-height:140px}
 .bg>div{border-left:1px solid var(--line);position:relative}
 .bg>div.off{background-image:repeating-linear-gradient(135deg,var(--off-stripe) 0 5px,transparent 5px 11px)}
 .bg>div.off::after{content:"Off";position:absolute;left:6px;bottom:4px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.bg>div.remote{background-image:radial-gradient(var(--remote-dot) 1.1px,transparent 1.4px);background-size:8px 8px}
+.bg>div.remote::after{content:"Remote";position:absolute;left:6px;bottom:4px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
 .who .offsum{color:var(--fg);font-weight:500}
+.who .links{display:flex;flex-wrap:wrap;gap:2px 10px;margin-top:2px}
 .who .link{align-self:flex-start;margin-top:2px}
 .offgrid{display:grid;grid-template-columns:auto repeat(5,minmax(0,1fr));gap:6px 8px;align-items:center}
 .offgrid .wk{font-size:12px;color:var(--muted);white-space:nowrap}
 .offday{display:flex;align-items:center;gap:6px;font-size:13px;border:1px solid var(--line);border-radius:6px;padding:6px 8px;cursor:pointer;min-width:0;white-space:nowrap}
 .offday:has(input:checked){border-color:var(--fg);background-image:repeating-linear-gradient(135deg,var(--off-stripe) 0 5px,transparent 5px 11px);font-weight:600}
+.offday.rem:has(input:checked){background-image:radial-gradient(var(--remote-dot) 1.1px,transparent 1.4px);background-size:8px 8px}
 .offday.outside{color:var(--muted)}
+.offday.blocked{opacity:.5;cursor:default}
 @media (max-width:560px){.offgrid{grid-template-columns:repeat(5,minmax(0,1fr))}.offgrid .wk{grid-column:1 / -1}}
 .items{position:relative;grid-auto-flow:row dense;row-gap:6px;padding-block:8px}
 .blk{margin:0 4px;text-align:left;font:inherit;font-size:12.5px;line-height:1.3;border:1px solid;border-radius:5px;padding:6px 8px 7px;cursor:grab;touch-action:none;min-width:0;overflow-wrap:anywhere;display:flex;flex-direction:column;gap:2px;user-select:none;-webkit-user-select:none;transition:opacity .15s}
@@ -359,7 +364,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const q = s => "“" + s + "”";
 
 let code = store.get(CODE_KEY), who = store.get(NAME_KEY) || "";
-let REV = null, SDOC = null, SPOS = {}, LOG = [], CAN_RESET = false, UNDO = null, REDO = null, OFF = {}, docKey = null;
+let REV = null, SDOC = null, SPOS = {}, LOG = [], CAN_RESET = false, UNDO = null, REDO = null, OFF = {}, REM = {}, docKey = null;
 let showOv = store.get(OV_KEY) === "1";
 let M = null, blocks = [], base = {};
 let sel = null, drag = null, pendingRender = false, filter = null, view = 0; /* view 0 = this plan, 1 = the two weeks after it */
@@ -450,6 +455,7 @@ function analyze(m){
   return {broken, dangling, overlaps};
 }
 const offSet = nm => new Set(Array.isArray(OFF[nm]) ? OFF[nm] : []);
+const remSet = nm => { const off = offSet(nm); return new Set((Array.isArray(REM[nm]) ? REM[nm] : []).filter(x => !off.has(x))); }; /* a day off wins over remote */
 function offClashes(m){
   const out = [];
   m.blocks.forEach(b => {
@@ -609,13 +615,17 @@ function renderBoard(P, focusSel){
   }
   board.append(hd);
   M.people.forEach((pp, p) => {
-    const off = offSet(pp[0]), offIn = D.filter(x => off.has(x.iso));
+    const off = offSet(pp[0]), offIn = D.filter(x => off.has(x.iso)), rem = remSet(pp[0]), remIn = D.filter(x => rem.has(x.iso));
     const w = el("div", "who"); w.append(el("strong", null, pp[0])); if(pp[1]) w.append(el("small", null, pp[1]));
     if(offIn.length) w.append(el("small", "offsum", "Off: " + offIn.map(x => x.w + " " + x.n).join(", ")));
-    const ob = el("button", "link noprint", "Days off"); ob.type = "button"; ob.title = "Set the days " + pp[0] + " is off"; ob.addEventListener("click", () => openOffDlg(p)); w.append(ob);
+    if(remIn.length) w.append(el("small", "offsum", "Remote: " + remIn.map(x => x.w + " " + x.n).join(", ")));
+    const lk = el("div", "links noprint");
+    const ob = el("button", "link", "Days off"); ob.type = "button"; ob.title = "Set the days " + pp[0] + " is off"; ob.addEventListener("click", () => openOffDlg(p, "off"));
+    const rb = el("button", "link", "Remote"); rb.type = "button"; rb.title = "Set the days " + pp[0] + " works remotely"; rb.addEventListener("click", () => openOffDlg(p, "remote"));
+    lk.append(ob, rb); w.append(lk);
     board.append(w);
     const lane = el("div", "lane"); lane.dataset.p = p;
-    const bg = el("div", "bg cols"); for(let i = 0; i <= L; i++){ const c = el("div", colCls(i)); if(i < L && off.has(D[i].iso)){ c.classList.add("off"); c.title = pp[0] + " is off"; } bg.append(c); }
+    const bg = el("div", "bg cols"); for(let i = 0; i <= L; i++){ const c = el("div", colCls(i)); if(i < L && off.has(D[i].iso)){ c.classList.add("off"); c.title = pp[0] + " is off"; } else if(i < L && rem.has(D[i].iso)){ c.classList.add("remote"); c.title = pp[0] + " works remotely"; } bg.append(c); }
     lane.append(bg);
     const items = el("div", "items cols");
     if(!view) blocks.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => {
@@ -819,7 +829,7 @@ async function poll(force, strict){
     const wasOff = liveState !== "live"; liveState = "live";
     if(res && res.same){ if(wasOff) refreshStatus(); if(todayISO() !== lastToday) render(false); return; }
     if(!res || !res.doc){ setLive(); return; }
-    REV = res.rev; SPOS = res.pos || {}; LOG = Array.isArray(res.log) ? res.log : []; CAN_RESET = !!res.can_reset; UNDO = res.undo || null; REDO = res.redo || null; OFF = res.off && typeof res.off === "object" ? res.off : {};
+    REV = res.rev; SPOS = res.pos || {}; LOG = Array.isArray(res.log) ? res.log : []; CAN_RESET = !!res.can_reset; UNDO = res.undo || null; REDO = res.redo || null; OFF = res.off && typeof res.off === "object" ? res.off : {}; REM = res.rem && typeof res.rem === "object" ? res.rem : {};
     const k = JSON.stringify(res.doc);
     if(k !== docKey){ docKey = k; SDOC = res.doc; M = model(SDOC); blocks = M.blocks; if(sel && !byId(sel)) sel = null; }
     base = {};
@@ -1039,22 +1049,25 @@ function openBlockDlg(id){
 }
 
 /* ---- days off ---- */
-function openOffDlg(p){
+function openOffDlg(p, kind){
   if(!M || !M.people[p]) return;
-  const nm = M.people[p][0];
-  const dlg = $("smallDlg"), {body, foot} = dlgShell($("smallForm"), "Days off for " + nm);
-  body.append(el("p", "hint", "Tick the days " + nm + " is off. Those days are shaded on the board, and anything planned on them is flagged in red. Days off stay when a new plan is loaded, so you can also mark days in the next plan."));
+  const nm = M.people[p][0], isRem = kind === "remote";
+  const dlg = $("smallDlg"), {body, foot} = dlgShell($("smallForm"), (isRem ? "Remote days for " : "Days off for ") + nm);
+  body.append(el("p", "hint", isRem
+    ? "Tick the days " + nm + " works remotely. They are marked on the board. Days off cannot be remote. Remote days stay when a new plan is loaded, so you can also mark days in the next plan."
+    : "Tick the days " + nm + " is off. Those days are shaded on the board, and anything planned on them is flagged in red. Days off stay when a new plan is loaded, so you can also mark days in the next plan."));
   const d = new Date(M.days[0].iso + "T12:00:00"); while(d.getDay() !== 1) d.setDate(d.getDate() - 1);
   const days = [];
   while(days.length < 20){ const w = d.getDay(); if(w !== 0 && w !== 6) days.push({iso:iso(d), w:WD[w].slice(0, 3), n:d.getDate(), m:d.toLocaleString("en", {month:"short"})}); d.setDate(d.getDate() + 1); }
-  const cur = offSet(nm), inPlan = new Set(M.days.map(x => x.iso)), boxes = [];
+  const cur = isRem ? new Set(Array.isArray(REM[nm]) ? REM[nm] : []) : offSet(nm), blockedBy = isRem ? offSet(nm) : new Set(), inPlan = new Set(M.days.map(x => x.iso)), boxes = [];
   const grid = el("div", "offgrid");
   for(let wk = 0; wk < 4; wk++){
     const first = days[wk * 5], plan = days.slice(wk * 5, wk * 5 + 5).some(x => inPlan.has(x.iso));
     grid.append(el("span", "wk", "Week " + isoWeek(first.iso) + " · " + first.n + " " + first.m + (plan ? "" : " (next plan)")));
     days.slice(wk * 5, wk * 5 + 5).forEach(x => {
-      const lab = el("label", "offday" + (inPlan.has(x.iso) ? "" : " outside")); const cb = inp("checkbox"); cb.checked = cur.has(x.iso);
-      lab.append(cb, document.createTextNode(x.w + " " + x.n)); lab.title = x.w + " " + x.n + " " + x.m; grid.append(lab); boxes.push({x, cb});
+      const blocked = blockedBy.has(x.iso);
+      const lab = el("label", "offday" + (isRem ? " rem" : "") + (inPlan.has(x.iso) ? "" : " outside") + (blocked ? " blocked" : "")); const cb = inp("checkbox"); cb.checked = cur.has(x.iso) && !blocked; cb.disabled = blocked;
+      lab.append(cb, document.createTextNode(x.w + " " + x.n)); lab.title = x.w + " " + x.n + " " + x.m + (blocked ? " (day off)" : ""); grid.append(lab); boxes.push({x, cb});
     });
   }
   body.append(grid);
@@ -1064,14 +1077,14 @@ function openOffDlg(p){
   const cancel = el("button", "btn", "Cancel"); cancel.type = "button"; cancel.addEventListener("click", () => dlg.close());
   const save = el("button", "btn primary", "Save"); save.type = "button"; foot.append(cancel, save);
   save.addEventListener("click", async () => {
-    const chosen = boxes.filter(b => b.cb.checked).map(b => b.x);
-    const added = chosen.filter(x => !cur.has(x.iso)), removed = boxes.filter(b => !b.cb.checked && cur.has(b.x.iso)).map(b => b.x);
+    const chosen = boxes.filter(b => b.cb.checked || (b.cb.disabled && cur.has(b.x.iso))).map(b => b.x); /* keep remote days hidden under a day off */
+    const added = chosen.filter(x => !cur.has(x.iso)), removed = boxes.filter(b => !b.cb.checked && !b.cb.disabled && cur.has(b.x.iso)).map(b => b.x);
     if(!added.length && !removed.length){ dlg.close(); return; }
     const f = x => x.w + " " + x.n + " " + x.m;
-    const what = "set days off for " + nm + ":" + (added.length ? " off " + added.map(f).join(", ") : "") + (added.length && removed.length ? ";" : "") + (removed.length ? " working again " + removed.map(f).join(", ") : "");
+    const what = (isRem ? "set remote days for " : "set days off for ") + nm + ":" + (added.length ? (isRem ? " remote " : " off ") + added.map(f).join(", ") : "") + (added.length && removed.length ? ";" : "") + (removed.length ? (isRem ? " in the office again " : " working again ") + removed.map(f).join(", ") : "");
     busy(save, true); err.hidden = true;
     await idle();
-    try{ await rpc("plan_set_off", {code, person:nm, d_from:days[0].iso, d_to:days[19].iso, days:chosen.map(x => x.iso), who, what}); }
+    try{ await rpc(isRem ? "plan_set_remote" : "plan_set_off", {code, person:nm, d_from:days[0].iso, d_to:days[19].iso, days:chosen.map(x => x.iso), who, what}); }
     catch(e){ busy(save, false); err.textContent = "Not saved: " + e.message; err.hidden = false; return; }
     busy(save, false); dlg.close(); await poll(true);
   });
@@ -1317,7 +1330,7 @@ function template(){
 }
 function planText(){
   const D = M.days, out = [(SDOC.title || "Plan") + ", " + dayLong(D[0]) + " to " + dayLong(D[L - 1])];
-  M.people.forEach((pp, p) => { const offIn = D.filter(x => offSet(pp[0]).has(x.iso)); out.push("", pp[0] + (offIn.length ? " (off: " + offIn.map(dayLong).join(", ") + ")" : "")); blocks.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => out.push("- " + when(M, b) + ": " + (b.t ? b.t + " " : "") + name(b))); });
+  M.people.forEach((pp, p) => { const offIn = D.filter(x => offSet(pp[0]).has(x.iso)), remIn = D.filter(x => remSet(pp[0]).has(x.iso)); out.push("", pp[0] + (offIn.length ? " (off: " + offIn.map(dayLong).join(", ") + ")" : "") + (remIn.length ? " (remote: " + remIn.map(dayLong).join(", ") + ")" : "")); blocks.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => out.push("- " + when(M, b) + ": " + (b.t ? b.t + " " : "") + name(b))); });
   const P = problems(); if(P.errs.length){ out.push("", "Problems"); P.errs.forEach(x => out.push("- " + x.t)); }
   return out.join("\n");
 }
