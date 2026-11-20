@@ -313,6 +313,7 @@ fieldset>.btn{align-self:flex-start}
             <button type="button" role="menuitem" data-act="upload">Upload new plan…</button>
             <button type="button" role="menuitem" data-act="past">Past plans…</button>
             <button type="button" role="menuitem" data-act="snapshot">Save a snapshot to past plans</button>
+            <button type="button" role="menuitem" data-act="rollnow">Start the next sprint now…</button>
             <hr>
             <button type="button" role="menuitem" data-act="copy">Copy as text</button>
             <button type="button" role="menuitem" data-act="print">Print or save as PDF</button>
@@ -852,7 +853,7 @@ function renderChecks(P){
   if(M && P.A){
     const D = M.days, t = todayISO(), A = P.A;
     if(t > D[L - 1].iso) row("bad", "Sprint has ended", "It ended on " + dayLong(D[L - 1]) + ". " + (rollErr ? "The next sprint could not be started: " + rollErr : "Starting the next sprint…"));
-    else row("ok", "Sprint is current", dayLong(D[0]) + " to " + dayLong(D[L - 1]) + ". The next one starts by itself on " + dayLong(M.next[0]) + ".");
+    else row("ok", "Sprint is current", dayLong(D[0]) + " to " + dayLong(D[L - 1]) + ". The next one starts by itself on " + dayLong(M.next[0]) + (t >= D[5].iso ? ", or now with Plan ▾ → Start the next sprint now." : "."));
     const live = M.deps.filter(dp => M.by[dp[0]] && M.by[dp[1]]);
     const dl = el("details"); dl.append(el("summary", null, "Show all dependencies"));
     const dul = el("ul", "deps");
@@ -1623,7 +1624,37 @@ async function menuAct(act){
       catch(e){ busy(go, false); body.append(el("p", "err-text", "Reset failed: " + e.message)); }
     });
   }
+  else if(act === "rollnow") openRollNow();
   else if(act === "forget"){ store.del(CODE_KEY); code = null; toGate(""); }
+}
+/* Start the next sprint before this one has ended (only in its second week, so no sprint is skipped). */
+function openRollNow(){
+  const D = M.days, t = todayISO(), nx = M.next[0];
+  if(t > D[L - 1].iso){ maybeRoll(true); smallMsg("Starting the next sprint", "This sprint has already ended, so the next one is starting now."); return; }
+  if(t < D[5].iso){ smallMsg("Too early", "The next sprint can be started early only in the second week of this sprint (from " + dayLong(D[5]) + "). It starts by itself on " + dayLong(nx) + "."); return; }
+  const n = obj(SDOC.next), nb = arr(n.blocks).length, nc = arr(n.cats).length;
+  const box = el("div");
+  box.append(el("p", null, "The sprint of " + weeksOf(nx.iso) + " starts now for everyone, instead of on " + dayLong(nx) + ". It still covers the two weeks from " + dayLong(nx) + "."));
+  const ul = el("ul");
+  ul.append(el("li", null, "This sprint (" + weeksOf(SDOC.start) + ") becomes the last sprint (‹ button, read only) and is saved to Past plans."),
+            el("li", null, "The new sprint gets what was planned for it: " + nb + (nb === 1 ? " block" : " blocks") + ", " + nc + (nc === 1 ? " topic" : " topics") + ". Same title, Jira address and people. Milestones and dependencies start empty."),
+            el("li", null, "The backlog carries over. Undo history is cleared."));
+  box.append(ul);
+  const {body, foot, ok} = smallMsg("Start the next sprint now?", box);
+  ok.textContent = "Cancel"; ok.className = "btn";
+  const go = el("button", "btn primary", "Start it for everyone"); go.type = "button"; foot.append(go);
+  go.addEventListener("click", async () => {
+    busy(go, true, "Starting…");
+    try{
+      await rpc("plan_rollover", {code, expect_start:String(SDOC.start || ""), who, early:true});
+      rollErr = ""; view = 0; sel = null; filter = null; await poll(true); $("smallDlg").close();
+    }catch(e){
+      busy(go, false);
+      if(isCodeErr(e)){ $("smallDlg").close(); toGate("The code was changed. Enter the new code."); return; }
+      const msg = String(e.message || e);
+      body.append(el("p", "err-text", "Could not start the next sprint: " + (/could not find the function|schema cache/i.test(msg) ? "the database is not upgraded yet (run upgrade-v9.sql)." : msg)));
+    }
+  });
 }
 
 /* ---- wiring ---- */
