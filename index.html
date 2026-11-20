@@ -168,6 +168,14 @@ textarea.code{font-family:var(--f-mono);font-size:12px;min-height:140px}
 .blk .flag{font-size:10.5px;font-weight:700;color:var(--err)}
 .blk.sel{outline:2px solid var(--fg);outline-offset:2px;opacity:1}
 .blk.dragging{opacity:.35;cursor:grabbing}
+.blk.ro{cursor:pointer}
+.blk .tag.todo{color:var(--warn)}
+.bl-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.bl-list li{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.bl-list li:first-child{border-top:0}
+.bl-list .info{flex:1;min-width:220px;display:flex;flex-direction:column;gap:1px}
+.bl-list .info small{color:var(--muted);font-size:12px}
+.bl-list .info .tk{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
 .ghost{position:absolute;top:5px;bottom:5px;border:2px dashed var(--accent);border-radius:6px;pointer-events:none}
 
 /* lower panels */
@@ -272,10 +280,10 @@ fieldset>.btn{align-self:flex-start}
   <section class="gate card" id="gate" hidden>
     <h1>Plan</h1>
     <form id="gateForm">
-      <label class="field"><span class="lab">Your name</span><input id="nameIn" type="text" autocomplete="name" maxlength="40" required></label>
+      <label class="field"><span class="lab">User</span><select id="nameIn" required></select></label>
       <label class="field"><span class="lab">Code</span><input id="codeIn" type="password" autocomplete="current-password" required></label>
       <button class="btn primary" type="submit">Open</button>
-      <p class="hint">This browser remembers both.</p>
+      <p class="hint">This browser remembers both. Blocks you add go to your own lane by default.</p>
       <p class="err-text" id="gateErr" hidden></p>
     </form>
   </section>
@@ -326,6 +334,7 @@ fieldset>.btn{align-self:flex-start}
       <section class="card detail" id="detail" aria-live="polite"></section>
       <section class="card" id="checks"></section>
     </div>
+    <section class="card noprint" id="backlog" aria-label="Backlog"></section>
     <p class="foot noprint">
       <span>Drag a block, or select it and use the arrow keys (Shift changes the length).</span>
       <span>Double-click a block to edit it.</span>
@@ -350,6 +359,8 @@ const SUPABASE_KEY = "sb_publishable_X3nyIZ2CB2BGTPnvrS0iHw_Qza1iVsx";
 /* ----------------------- */
 
 const L = 10, POLL_MS = 4000, CODE_KEY = "plan-code", NAME_KEY = "plan-name", OV_KEY = "plan-show-overlaps";
+/* The only users who can open the board (all with the same team code). */
+const USERS = ["Ata", "Erfan", "Matthias"];
 const COLORS = ["Violet", "Amber", "Teal", "Grey", "Blue", "Rose", "Green", "Brown"];
 const DEP_TYPES = ["before", "same", "apart"];
 const $ = id => document.getElementById(id);
@@ -362,12 +373,17 @@ const store = {
 const clone = o => JSON.parse(JSON.stringify(o));
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const q = s => "“" + s + "”";
+const arr = v => Array.isArray(v) ? v : [];
+const obj = v => v && typeof v === "object" && !Array.isArray(v) ? v : {};
+const lc = s => String(s == null ? "" : s).trim().toLowerCase();
+const asUser = n => USERS.find(u => lc(u) === lc(n)) || "";
 
-let code = store.get(CODE_KEY), who = store.get(NAME_KEY) || "";
+let code = store.get(CODE_KEY), who = asUser(store.get(NAME_KEY));
 let REV = null, SDOC = null, SPOS = {}, LOG = [], CAN_RESET = false, UNDO = null, REDO = null, OFF = {}, REM = {}, docKey = null;
 let showOv = store.get(OV_KEY) === "1";
 let M = null, blocks = [], base = {};
-let sel = null, drag = null, pendingRender = false, filter = null, view = 0; /* view 0 = this plan, 1 = the two weeks after it */
+let sel = null, drag = null, pendingRender = false, filter = null, view = 0; /* view -1 = last sprint (read only), 0 = this sprint, 1 = the two weeks after it */
+let PREV = null, PM = null, prevKey = null, rollErr = "", rolling = false; const rollAt = {};
 let liveState = "connecting", fails = 0, saveErr = "", lastAlertKey = "", lastToday = "";
 const pending = {}, inflight = {}, queued = {};
 
@@ -504,6 +520,30 @@ function bakedFrom(doc, posMap){ const d = clone(doc); (d.blocks || []).forEach(
 function currentDoc(){ const d = clone(SDOC); (d.blocks || []).forEach(b => { const x = byId(String(b.id)); if(x){ b.p = x.p; b.d = x.d; b.s = x.s; } }); return d; }
 const newId = p => (p || "b") + Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 5);
 
+/* ---- sprints, backlog ---- */
+/* The lane of a person (by name), else the lane of the signed-in user, else the first lane. */
+function laneFor(person, people){
+  let i = people.findIndex(pp => lc(pp[0]) === lc(person)); if(i < 0) i = people.findIndex(pp => lc(pp[0]) === lc(who));
+  return i < 0 ? 0 : i;
+}
+const myLane = m => { const i = m.people.findIndex(pp => lc(pp[0]) === lc(who)); return i; };
+const weeksOf = start => { if(!validDate(start)) return "an earlier sprint"; const D = workdays(start); return "weeks " + isoWeek(D[0].iso) + " and " + isoWeek(D[5].iso); };
+const viewM = () => (view < 0 && PM) ? PM : M;
+const viewBlocks = () => view > 0 ? [] : (view < 0 && PM) ? PM.blocks : blocks;
+/* What happened to a parked block of the last sprint: "backlog", "sprint" or null (not decided yet). */
+const carryState = id => { const c = SDOC ? obj(SDOC.carried)[id] : null; return c === "backlog" || c === "sprint" ? c : null; };
+const prevParked = () => PM ? PM.blocks.filter(b => b.d === L) : [];
+const pendingCarry = () => prevParked().filter(b => !carryState(b.id));
+/* Topics belong to one sprint, so a backlog item keeps only the old topic's name as plain text. */
+function backlogItem(x, person, topic, start){
+  return {id:String(x.id), l:String(x.l || ""), t:String(x.t || ""), n:String(x.n || ""), links:arr(x.links).filter(Array.isArray), s:clamp(Math.round(+x.s || 1), 1, L), who:person || "", topic:topic || "", from:start || "", at:todayISO()};
+}
+/* A block put into this sprint: parked, no topic (topics do not carry over), in its person's lane. */
+function sprintBlock(x, person, people, existing){
+  let id = String(x.id); if(existing.some(y => String(y.id) === id)) id = newId("b");
+  return {id, p:laneFor(person, people), d:L, s:clamp(Math.round(+x.s || 1), 1, L), c:"", t:String(x.t || ""), l:String(x.l || ""), n:String(x.n || ""), links:arr(x.links).filter(Array.isArray)};
+}
+
 /* ---- problems: what must scream ---- */
 function problems(){
   const errs = [], warns = [];
@@ -512,7 +552,12 @@ function problems(){
   if(!M) return {errs, warns, A:null};
   const A = analyze(M), today = todayISO(), last = M.days[L - 1];
   A.off = offClashes(M);
-  if(today > last.iso) errs.push({t:"This plan ended on " + dayLong(last) + ". Upload the plan for the next two weeks.", act:"upload"});
+  if(today > last.iso){
+    if(rollErr) errs.push({t:"This sprint ended on " + dayLong(last) + ". The next sprint could not be started: " + rollErr, act:"roll"});
+    else warns.push({t:"This sprint ended on " + dayLong(last) + ". Starting the next sprint…"});
+  }
+  const pend = pendingCarry();
+  if(pend.length) warns.push({t:(pend.length === 1 ? "1 parked block" : pend.length + " parked blocks") + " from the last sprint (" + weeksOf(PREV.start) + ") " + (pend.length === 1 ? "waits" : "wait") + " for a decision: backlog or this sprint.", act:"prev"});
   A.broken.forEach(dp => errs.push({t:"Dependency broken: " + depText(dp, M.by) + "." + (dp[3] ? " (" + dp[3] + ")" : ""), id:dp[1]}));
   A.off.forEach(x => errs.push({t:M.people[x.b.p][0] + " is off on " + x.days.map(d => dayLong(M.days[d])).join(", ") + " but has " + q(name(x.b)) + " planned.", id:x.b.id}));
   if(showOv) A.overlaps.forEach(([a, b]) => errs.push({t:M.people[a.p][0] + " is double-booked: " + q(name(a)) + " and " + q(name(b)) + " overlap on " + overlapWhen(M, a, b) + ".", id:b.id}));
@@ -526,7 +571,8 @@ function render(focusSel){
   if(!M) return;
   lastToday = todayISO();
   const P = problems();
-  renderHeader(P); renderAlerts(P); renderLegend(); renderBoard(P, focusSel); renderDetail(); renderChecks(P);
+  if(view < 0 && !PM) view = 0;
+  renderHeader(P); renderAlerts(P); renderLegend(); renderBoard(P, focusSel); renderDetail(); renderChecks(P); renderBacklog();
 }
 function renderHeader(P){
   $("title").textContent = SDOC.title || "Plan";
@@ -537,7 +583,7 @@ function renderHeader(P){
   else if(t > D[L - 1].iso) st = "ended";
   else { const i = D.findIndex(x => x.iso >= t); st = "day " + (i + 1) + " of " + L; }
   $("range").textContent = D[0].w + " " + D[0].n + " " + D[0].m + " to " + D[L - 1].w + " " + D[L - 1].n + " " + D[L - 1].m + " " + D[L - 1].y + " · " + st;
-  $("whoBtn").textContent = "You: " + (who || "set your name");
+  $("whoBtn").textContent = "You: " + (who || "choose user");
   renderUndo();
 }
 function renderAlerts(P){
@@ -555,6 +601,8 @@ function renderAlerts(P){
       if(x.id) act("Show", () => focusBlock(x.id));
       if(x.act === "upload") act("Upload new plan", () => openUpload());
       if(x.act === "plan") act("Edit plan", () => openPlanDlg());
+      if(x.act === "roll") act("Try again", () => maybeRoll(true));
+      if(x.act === "prev") act("Show them", () => { view = -1; sel = null; filter = null; render(false); });
       if(x.act === "cleandeps") act("Remove them", () => edit(d => { const by = {}; (d.blocks || []).forEach(b => by[b.id] = 1); d.deps = (d.deps || []).filter(dp => by[dp[0]] && by[dp[1]]); }, "removed dependencies to deleted blocks").then(e => { if(e) showSaveErr(e); }));
       if(x.dismiss) act("Dismiss", () => { saveErr = ""; render(false); });
       ul.append(li);
@@ -566,9 +614,12 @@ function renderAlerts(P){
 }
 function renderLegend(){
   const lg = $("legend"); lg.innerHTML = "";
-  if(filter && !catOf(M, filter)) filter = null;
-  M.cats.forEach(c => {
-    const n = M.blocks.filter(b => b.c === c[0]).length;
+  if(view > 0){ filter = null; lg.append(el("span", "static", "Topics belong to a sprint. These weeks get their own topics when their sprint starts.")); return; }
+  const m = viewM(), bl = viewBlocks();
+  if(filter && !catOf(m, filter)) filter = null;
+  if(!m.cats.length) lg.append(el("span", "static", "No topics in this sprint yet. Add one with + Block (New topic…) or in Edit plan."));
+  m.cats.forEach(c => {
+    const n = bl.filter(b => b.c === c[0]).length;
     const b = el("button", "chipf" + (filter === c[0] ? " on" : "")); b.type = "button";
     b.setAttribute("aria-pressed", filter === c[0] ? "true" : "false");
     b.title = filter === c[0] ? "Show all topics" : "Show only this topic";
@@ -579,9 +630,9 @@ function renderLegend(){
   const lt = el("span", "static"); lt.append(el("i", "sw later"), document.createTextNode("Parked")); lg.append(lt);
   if(filter){ const r = el("button", "link noprint", "Show all"); r.type = "button"; r.addEventListener("click", () => { filter = null; render(false); }); lg.append(r); }
 }
-function relInfo(){
-  const out = {}; if(!(sel && byId(sel))) return out;
-  M.deps.forEach(dp => {
+function relInfo(m){
+  const out = {}; if(!(sel && m.by[sel])) return out;
+  m.deps.forEach(dp => {
     if(dp[0] !== sel && dp[1] !== sel) return;
     const other = dp[0] === sel ? dp[1] : dp[0];
     out[other] = dp[2] === "same" ? "Same day" : dp[2] === "apart" ? "Not the same day" : (dp[0] === sel ? "Waits on this" : "Needed first");
@@ -590,15 +641,15 @@ function relInfo(){
 }
 function renderBoard(P, focusSel){
   const board = $("board"); board.innerHTML = "";
-  const D = view ? M.next : M.days, t = todayISO();
+  const m = viewM(), ro = view !== 0, D = view > 0 ? M.next : m.days, t = todayISO();
   renderWeekNav(D);
   const isPast = i => i < L && D[i].iso < t, isToday = i => i < L && D[i].iso === t;
   const colCls = i => [i === L ? "lat" : (i === 5 ? "wk2" : ""), isPast(i) ? "past" : "", isToday(i) ? "today" : ""].join(" ").trim();
   const flagged = {};
-  if(P.A){ P.A.broken.forEach(dp => { flagged[dp[0]] = flagged[dp[0]] || "Dependency broken"; flagged[dp[1]] = "Dependency broken"; });
+  if(!ro && P.A){ P.A.broken.forEach(dp => { flagged[dp[0]] = flagged[dp[0]] || "Dependency broken"; flagged[dp[1]] = "Dependency broken"; });
            P.A.off.forEach(x => { flagged[x.b.id] = "On a day off"; });
            if(showOv) P.A.overlaps.forEach(([a, b]) => { flagged[a.id] = flagged[a.id] || "Double-booked"; flagged[b.id] = flagged[b.id] || "Double-booked"; }); }
-  const rel = relInfo(), hasSel = !!(sel && byId(sel));
+  const rel = relInfo(m), hasSel = !!(sel && m.by[sel]);
   board.append(el("div", "corner"));
   const wk = el("div", "weeks");
   wk.append(el("div", null, "Week " + isoWeek(D[0].iso) + " · " + D[0].n + " " + D[0].m + " to " + D[4].n + " " + D[4].m), el("div", null, "Week " + isoWeek(D[5].iso) + " · " + D[5].n + " " + D[5].m + " to " + D[9].n + " " + D[9].m), el("div", null, "Later"));
@@ -606,30 +657,34 @@ function renderBoard(P, focusSel){
   const hd = el("div", "cols hd");
   for(let i = 0; i <= L; i++){
     const c = el("div", colCls(i));
-    if(i === L){ c.append(el("span", "day", "Parked"), el("span", "ms", view ? "Shown with this plan's weeks" : "After " + D[9].n + " " + D[9].m)); }
+    if(i === L){ c.append(el("span", "day", "Parked"), el("span", "ms", view > 0 ? "Shown with the sprint's weeks" : view < 0 ? "Move each to the backlog or this sprint" : "After " + D[9].n + " " + D[9].m)); }
     else {
       const dy = el("span", "day", D[i].w); dy.append(el("b", null, D[i].n + " " + D[i].m)); if(isToday(i)) dy.append(el("span", "tdy", "Today")); c.append(dy);
-      if(!view) (M.ms[i] || M.ms[String(i)] || []).forEach(m => { if(Array.isArray(m)) c.append(el("span", "ms" + (m[1] ? " key" : ""), String(m[0]))); });
+      if(view <= 0) (m.ms[i] || m.ms[String(i)] || []).forEach(x => { if(Array.isArray(x)) c.append(el("span", "ms" + (x[1] ? " key" : ""), String(x[0]))); });
     }
     hd.append(c);
   }
   board.append(hd);
-  M.people.forEach((pp, p) => {
+  const bl = viewBlocks();
+  m.people.forEach((pp, p) => {
     const off = offSet(pp[0]), offIn = D.filter(x => off.has(x.iso)), rem = remSet(pp[0]), remIn = D.filter(x => rem.has(x.iso));
     const w = el("div", "who"); w.append(el("strong", null, pp[0])); if(pp[1]) w.append(el("small", null, pp[1]));
     if(offIn.length) w.append(el("small", "offsum", "Off: " + offIn.map(x => x.w + " " + x.n).join(", ")));
     if(remIn.length) w.append(el("small", "offsum", "Remote: " + remIn.map(x => x.w + " " + x.n).join(", ")));
-    const lk = el("div", "links noprint");
-    const ob = el("button", "link", "Days off"); ob.type = "button"; ob.title = "Set the days " + pp[0] + " is off"; ob.addEventListener("click", () => openOffDlg(p, "off"));
-    const rb = el("button", "link", "Remote"); rb.type = "button"; rb.title = "Set the days " + pp[0] + " works remotely"; rb.addEventListener("click", () => openOffDlg(p, "remote"));
-    lk.append(ob, rb); w.append(lk);
+    if(view >= 0){
+      const lk = el("div", "links noprint");
+      const ob = el("button", "link", "Days off"); ob.type = "button"; ob.title = "Set the days " + pp[0] + " is off"; ob.addEventListener("click", () => openOffDlg(p, "off"));
+      const rb = el("button", "link", "Remote"); rb.type = "button"; rb.title = "Set the days " + pp[0] + " works remotely"; rb.addEventListener("click", () => openOffDlg(p, "remote"));
+      lk.append(ob, rb); w.append(lk);
+    }
     board.append(w);
-    const lane = el("div", "lane"); lane.dataset.p = p;
+    const lane = el("div", "lane"); lane.dataset.p = p; if(ro) lane.dataset.ro = "1";
     const bg = el("div", "bg cols"); for(let i = 0; i <= L; i++){ const c = el("div", colCls(i)); if(i < L && off.has(D[i].iso)){ c.classList.add("off"); c.title = pp[0] + " is off"; } else if(i < L && rem.has(D[i].iso)){ c.classList.add("remote"); c.title = pp[0] + " works remotely"; } bg.append(c); }
     lane.append(bg);
     const items = el("div", "items cols");
-    if(!view) blocks.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => {
-      const cls = ["blk", b.d === L ? "later" : catCls(M, b.c)];
+    bl.filter(b => b.p === p).sort((a, b) => a.d - b.d).forEach(b => {
+      const cls = ["blk", b.d === L ? "later" : catCls(m, b.c)];
+      if(ro) cls.push("ro");
       if(b.d !== L && D[endOf(b)].iso < t) cls.push("done");
       if(flagged[b.id]) cls.push("conflict");
       if(sel === b.id) cls.push("sel");
@@ -640,10 +695,12 @@ function renderBoard(P, focusSel){
       k.style.gridColumn = (b.d + 1) + " / span " + (b.d === L ? 1 : b.s);
       if(b.t) k.append(el("span", "tk", b.t));
       k.append(el("span", "lb", name(b)));
+      let st = "";
+      if(view < 0 && b.d === L){ const c = carryState(b.id); st = c === "backlog" ? "→ Backlog" : c === "sprint" ? "→ This sprint" : "Backlog or this sprint?"; k.append(el("span", "tag" + (c ? "" : " todo"), st)); }
       if(hasSel && rel[b.id] && sel !== b.id) k.append(el("span", "tag", rel[b.id]));
       if(flagged[b.id]) k.append(el("span", "flag", "⚠ " + flagged[b.id]));
-      k.setAttribute("aria-label", (b.t || "") + " " + name(b) + ", " + pp[0] + ", " + when(M, b) + (flagged[b.id] ? ", " + flagged[b.id] : ""));
-      wire(k, b.id);
+      k.setAttribute("aria-label", (b.t || "") + " " + name(b) + ", " + pp[0] + ", " + when(m, b) + (flagged[b.id] ? ", " + flagged[b.id] : "") + (st ? ", " + st : ""));
+      if(ro) wireRO(k, b.id); else wire(k, b.id);
       items.append(k);
     });
     lane.append(items); board.append(lane);
@@ -652,15 +709,20 @@ function renderBoard(P, focusSel){
 }
 function renderWeekNav(D){
   const nav = $("weeknav"); nav.innerHTML = "";
-  const btn = (txt, label, dis, v) => { const b = el("button", "btn small", txt); b.type = "button"; b.title = label; b.setAttribute("aria-label", label); b.disabled = dis; b.addEventListener("click", () => { view = v; render(false); }); return b; };
-  nav.append(btn("‹", "Show this plan's two weeks", view === 0, 0),
-             el("span", "lbl", "Weeks " + isoWeek(D[0].iso) + " and " + isoWeek(D[5].iso) + (view ? " · next two weeks" : " · this plan")),
-             btn("›", "Show the next two weeks", view === 1, 1));
-  if(view) nav.append(el("p", "hint", "Not planned yet. Days off already show here; blocks appear when the plan for these weeks is uploaded."));
+  const go = v => { view = v; sel = null; filter = null; render(false); };
+  const btn = (txt, label, dis, v) => { const b = el("button", "btn small", txt); b.type = "button"; b.title = label; b.setAttribute("aria-label", label); b.disabled = dis; b.addEventListener("click", () => go(v)); return b; };
+  const what = view < 0 ? " · last sprint (read only)" : view > 0 ? " · next two weeks" : " · this sprint";
+  nav.append(btn("‹", view > 0 ? "Show this sprint" : "Show the last sprint", view < 0 || (view === 0 && !PM), view - 1),
+             el("span", "lbl", "Weeks " + isoWeek(D[0].iso) + " and " + isoWeek(D[5].iso) + what),
+             btn("›", view < 0 ? "Show this sprint" : "Show the next two weeks", view > 0, view + 1));
+  if(view !== 0){ const b = el("button", "link", "Back to this sprint"); b.type = "button"; b.addEventListener("click", () => go(0)); nav.append(b); }
+  if(view > 0) nav.append(el("p", "hint", "Not planned yet. Days off already show here. These weeks become the sprint automatically on their first Monday."));
+  if(view < 0) nav.append(el("p", "hint", "The sprint before this one, as it was when it ended. Parked blocks can be moved to the backlog or into this sprint: select one."));
 }
 function renderDetail(){
   const d = $("detail"); d.innerHTML = "";
-  const b = sel && byId(sel);
+  if(view < 0 && PM) return renderPrevDetail(d);
+  const b = view === 0 && sel && byId(sel);
   if(!b){
     d.append(el("h2", null, "Block details"), el("p", "hint", "Select a block to see its notes, links and dependencies. Its connected blocks are highlighted on the board. On a phone, tap a block and use the buttons here."));
     return;
@@ -668,14 +730,7 @@ function renderDetail(){
   const head = el("div", "ctrls"); head.append(el("h2", null, name(b)), el("span", "sep"));
   const eb = el("button", "btn small noprint", "Edit"); eb.type = "button"; eb.addEventListener("click", () => openBlockDlg(b.id)); head.append(eb);
   d.append(head);
-  const meta = el("div", "meta");
-  if(b.t){ const s = el("span"); s.append(ticketNodes(b.t, SDOC)); meta.append(s); }
-  const c = catOf(M, b.c); if(c){ const s = el("span"); s.append(el("i", "sw k" + c[2]), document.createTextNode(" " + c[1])); meta.append(s); }
-  meta.append(el("span", null, M.people[b.p][0]), el("span", null, when(M, b) + (b.d === L ? "" : " (" + b.s + (b.s === 1 ? " day)" : " days)"))));
-  d.append(meta);
-  if(b.n) d.append(el("p", "note", b.n));
-  const links = (Array.isArray(b.links) ? b.links : []).filter(x => Array.isArray(x) && safeUrl(x[1]));
-  if(links.length){ const w = el("div", "links"); links.forEach(x => { const a = el("a", null, x[0] || x[1]); a.href = safeUrl(x[1]); a.target = "_blank"; a.rel = "noopener noreferrer"; w.append(a); }); d.append(w); }
+  blockInfo(d, b, M, SDOC);
   const ct = el("div", "ctrls noprint");
   const mk = (txt, fn, dis) => { const x = el("button", "btn small", txt); x.type = "button"; x.disabled = !!dis; x.addEventListener("click", fn); return x; };
   ct.append(mk("← Earlier", () => shift(b, -1), b.d === 0), mk("Later →", () => shift(b, 1), b.d === L),
@@ -683,6 +738,7 @@ function renderDetail(){
   const s = pick(M.people.map((pp, i) => [i, pp[0]]), b.p); s.setAttribute("aria-label", "Person");
   s.addEventListener("change", () => { b.p = +s.value; commit(false); });
   ct.append(s, b.d === L ? mk("Back to plan", () => { b.d = L - b.s; commit(false); }) : mk("Park it", () => { b.d = L; commit(false); }));
+  const tb = mk("To backlog", () => toBacklog(b.id)); tb.title = "Take it out of this sprint and keep it in the backlog"; ct.append(tb);
   d.append(ct);
   const rel = M.deps.filter(dp => (dp[0] === b.id || dp[1] === b.id) && M.by[dp[0]] && M.by[dp[1]]);
   if(rel.length){
@@ -698,6 +754,63 @@ function renderDetail(){
     });
     d.append(ul);
   }
+}
+function blockInfo(d, b, m, doc){
+  const meta = el("div", "meta");
+  if(b.t){ const s = el("span"); s.append(ticketNodes(b.t, doc)); meta.append(s); }
+  const c = catOf(m, b.c); if(c){ const s = el("span"); s.append(el("i", "sw k" + c[2]), document.createTextNode(" " + c[1])); meta.append(s); }
+  meta.append(el("span", null, m.people[b.p] ? m.people[b.p][0] : "?"), el("span", null, when(m, b) + (b.d === L ? "" : " (" + b.s + (b.s === 1 ? " day)" : " days)"))));
+  d.append(meta);
+  if(b.n) d.append(el("p", "note", b.n));
+  const links = arr(b.links).filter(x => Array.isArray(x) && safeUrl(x[1]));
+  if(links.length){ const w = el("div", "links"); links.forEach(x => { const a = el("a", null, x[0] || x[1]); a.href = safeUrl(x[1]); a.target = "_blank"; a.rel = "noopener noreferrer"; w.append(a); }); d.append(w); }
+}
+function renderPrevDetail(d){
+  const b = sel && PM.by[sel], pend = pendingCarry(), wk = weeksOf(PREV.start);
+  const mk = (txt, cls, fn) => { const x = el("button", "btn small" + (cls ? " " + cls : ""), txt); x.type = "button"; x.addEventListener("click", fn); return x; };
+  if(!b){
+    d.append(el("h2", null, "Last sprint (" + wk + ")"));
+    const parked = prevParked().length;
+    d.append(el("p", "hint", !parked ? "Nothing was parked in this sprint." : pend.length
+      ? (pend.length === 1 ? "1 parked block still needs" : pend.length + " parked blocks still need") + " a decision. Select one on the board and move it to the backlog or into this sprint."
+      : "All " + parked + " parked blocks are moved on. Undo takes back the latest move."));
+    if(pend.length > 1){
+      const ct = el("div", "ctrls noprint"), all = el("button", "btn small", "Move all " + pend.length + " to the backlog"); all.type = "button";
+      twoStep(all, "Click again to move all " + pend.length, () => carry(pend, "backlog"));
+      ct.append(all); d.append(ct);
+    }
+    return;
+  }
+  const head = el("div", "ctrls"); head.append(el("h2", null, name(b))); d.append(head);
+  blockInfo(d, b, PM, PREV);
+  if(b.d !== L){ d.append(el("p", "hint", "This block was planned in the last sprint (" + wk + "). Only parked blocks are moved on.")); return; }
+  const st = carryState(b.id);
+  if(st){ d.append(el("p", "hint", st === "backlog" ? "Moved to the backlog (below the board)." : "Moved into this sprint, in the Parked column. Drag it to a day there.")); return; }
+  d.append(el("p", "hint", "Parked when the sprint ended. Where should it go?"));
+  const ct = el("div", "ctrls noprint");
+  ct.append(mk("Move into this sprint", "primary", () => carry([b], "sprint")), mk("Move to the backlog", "", () => carry([b], "backlog")));
+  d.append(ct);
+}
+function renderBacklog(){
+  const c = $("backlog"); c.innerHTML = "";
+  const items = SDOC ? arr(SDOC.backlog).filter(x => x && typeof x === "object" && x.id != null) : [];
+  const head = el("div", "ctrls"); head.append(el("h2", null, "Backlog" + (items.length ? " (" + items.length + ")" : ""))); c.append(head);
+  if(!items.length){ c.append(el("p", "hint", "Empty. Send a block here with \u201cTo backlog\u201d in its details. When a sprint ends, its parked blocks can be sent here too. The backlog carries over from sprint to sprint.")); return; }
+  const ul = el("ul", "bl-list");
+  items.forEach(x => {
+    const li = el("li"), info = el("div", "info");
+    info.append(el("strong", null, x.l || x.t || "Untitled"));
+    if(x.t){ const t = el("span", "tk"); t.append(ticketNodes(String(x.t), SDOC)); info.append(t); }
+    const bits = []; if(x.who) bits.push(x.who); if(x.from) bits.push("from " + weeksOf(x.from)); if(x.topic) bits.push("topic then: " + x.topic);
+    if(bits.length) info.append(el("small", null, bits.join(" · ")));
+    if(x.n) info.append(el("small", null, String(x.n).length > 160 ? String(x.n).slice(0, 157) + "…" : String(x.n)));
+    const mv = el("button", "btn small", "Move into this sprint"); mv.type = "button"; mv.title = "Put it into the Parked column of this sprint";
+    mv.addEventListener("click", () => fromBacklog(String(x.id), "sprint"));
+    const rm = el("button", "btn small danger", "Delete"); rm.type = "button";
+    twoStep(rm, "Click again to delete", () => fromBacklog(String(x.id), "delete"));
+    li.append(info, mv, rm); ul.append(li);
+  });
+  c.append(ul);
 }
 function relTime(s){
   const t = new Date(s); if(isNaN(t)) return "";
@@ -720,8 +833,8 @@ function renderChecks(P){
   else row("ok", "Connected", "Changes reach everyone within a few seconds.");
   if(M && P.A){
     const D = M.days, t = todayISO(), A = P.A;
-    if(t > D[L - 1].iso) row("bad", "Plan has ended", "It ended on " + dayLong(D[L - 1]) + ". Upload the next plan.");
-    else row("ok", "Plan is current", dayLong(D[0]) + " to " + dayLong(D[L - 1]));
+    if(t > D[L - 1].iso) row("bad", "Sprint has ended", "It ended on " + dayLong(D[L - 1]) + ". " + (rollErr ? "The next sprint could not be started: " + rollErr : "Starting the next sprint…"));
+    else row("ok", "Sprint is current", dayLong(D[0]) + " to " + dayLong(D[L - 1]) + ". The next one starts by itself on " + dayLong(M.next[0]) + ".");
     const live = M.deps.filter(dp => M.by[dp[0]] && M.by[dp[1]]);
     const dl = el("details"); dl.append(el("summary", null, "Show all dependencies"));
     const dul = el("ul", "deps");
@@ -820,6 +933,73 @@ async function edit(fn, what){
   return "Others are changing the plan right now. Please try again in a moment.";
 }
 
+/* ---- backlog and the sprint change ---- */
+async function toBacklog(id){
+  const src = byId(id); if(!src) return;
+  const e = await edit(d => {
+    d.blocks = arr(d.blocks);
+    const x = d.blocks.find(y => String(y.id) === id); if(!x) throw new Error("This block was deleted by someone else meanwhile.");
+    const people = normPeople(d), cat = normCats(d).find(c => c[0] === String(x.c));
+    d.blocks = d.blocks.filter(y => y !== x);
+    d.deps = arr(d.deps).filter(dp => String(dp[0]) !== id && String(dp[1]) !== id);
+    d.backlog = arr(d.backlog); d.backlog.push(backlogItem(x, (people[clampPos(x, people.length).p] || [""])[0], cat ? cat[1] : "", d.start));
+  }, "moved " + q(name(src)) + " to the backlog");
+  if(e) return showSaveErr(e);
+  if(sel === id) sel = null; render(false);
+}
+async function fromBacklog(id, how){
+  const it = SDOC && arr(SDOC.backlog).find(x => x && String(x.id) === id); if(!it) return;
+  let put = null;
+  const e = await edit(d => {
+    d.backlog = arr(d.backlog);
+    const i = d.backlog.findIndex(x => x && String(x.id) === id); if(i < 0) throw new Error("Someone else already took this item out of the backlog.");
+    const x = d.backlog.splice(i, 1)[0];
+    if(how === "sprint"){ d.blocks = arr(d.blocks); put = sprintBlock(x, x.who, normPeople(d), d.blocks); d.blocks.push(put); }
+  }, (how === "sprint" ? "moved " + q(it.l || it.t || "an item") + " from the backlog into this sprint" : "deleted " + q(it.l || it.t || "an item") + " from the backlog"));
+  if(e) return showSaveErr(e);
+  if(put){ view = 0; sel = put.id; render(false); focusBlock(put.id); }
+}
+/* Parked blocks of the last sprint go to the backlog or into this sprint (Parked column). */
+async function carry(list, to){
+  if(!PM || !list.length) return;
+  const one = list.length === 1, start = PREV.start;
+  const what = one ? "moved " + q(name(list[0])) + " from the last sprint " + (to === "backlog" ? "to the backlog" : "into this sprint")
+                   : "moved " + list.length + " parked blocks from the last sprint " + (to === "backlog" ? "to the backlog" : "into this sprint");
+  const e = await edit(d => {
+    d.carried = obj(d.carried); d.blocks = arr(d.blocks); d.backlog = arr(d.backlog);
+    const people = normPeople(d); let n = 0;
+    list.forEach(b => {
+      if(d.carried[b.id]) return; n++;
+      const person = PM.people[b.p] ? PM.people[b.p][0] : "", cat = catOf(PM, b.c);
+      if(to === "backlog") d.backlog.push(backlogItem(b, person, cat ? cat[1] : "", start));
+      else d.blocks.push(sprintBlock(b, person, people, d.blocks));
+      d.carried[b.id] = to;
+    });
+    if(!n) throw new Error("Someone else already moved " + (one ? "this block." : "these blocks."));
+  }, what);
+  if(e) return showSaveErr(e);
+  render(false);
+}
+/* When the sprint is over, start the next one: the server keeps the old sprint as "last sprint",
+   starts an empty one (same people, no topics, backlog kept). Safe if several browsers do it at once. */
+async function maybeRoll(force){
+  if(rolling || !SDOC || !M || !code) return;
+  if(todayISO() <= M.days[L - 1].iso){ rollErr = ""; return; }
+  const k = String(SDOC.start || "");
+  if(!force && rollAt[k] && Date.now() - rollAt[k] < 60000) return;
+  rollAt[k] = Date.now(); rolling = true;
+  try{
+    await rpc("plan_rollover", {code, expect_start:k, who});
+    rollErr = ""; view = 0; sel = null; filter = null; rolling = false; await poll(true);
+  }catch(e){
+    rolling = false;
+    if(isCodeErr(e)){ toGate("The code was changed. Enter the new code."); return; }
+    const msg = String(e.message || e);
+    rollErr = /not ended yet/i.test(msg) ? "" : /could not find the function|schema cache/i.test(msg) ? "the database is not upgraded yet (run upgrade-v7.sql)." : msg;
+    lastAlertKey = ""; render(false);
+  }
+}
+
 /* ---- polling ---- */
 async function poll(force, strict){
   if(!code) return;
@@ -827,11 +1007,14 @@ async function poll(force, strict){
     const res = await rpc("plan_get", (force || REV === null) ? {code} : {code, since:REV});
     fails = 0;
     const wasOff = liveState !== "live"; liveState = "live";
-    if(res && res.same){ if(wasOff) refreshStatus(); if(todayISO() !== lastToday) render(false); return; }
+    if(res && res.same){ if(wasOff) refreshStatus(); if(todayISO() !== lastToday) render(false); maybeRoll(); return; }
     if(!res || !res.doc){ setLive(); return; }
     REV = res.rev; SPOS = res.pos || {}; LOG = Array.isArray(res.log) ? res.log : []; CAN_RESET = !!res.can_reset; UNDO = res.undo || null; REDO = res.redo || null; OFF = res.off && typeof res.off === "object" ? res.off : {}; REM = res.rem && typeof res.rem === "object" ? res.rem : {};
     const k = JSON.stringify(res.doc);
-    if(k !== docKey){ docKey = k; SDOC = res.doc; M = model(SDOC); blocks = M.blocks; if(sel && !byId(sel)) sel = null; }
+    if(k !== docKey){ docKey = k; SDOC = res.doc; M = model(SDOC); blocks = M.blocks; if(view === 0 && sel && !byId(sel)) sel = null; }
+    const pk = JSON.stringify(res.prev || null);
+    if(pk !== prevKey){ prevKey = pk; PREV = res.prev && typeof res.prev === "object" && validDate(res.prev.start) && Array.isArray(res.prev.blocks) ? res.prev : null; PM = PREV ? model(PREV) : null; }
+    if(view < 0 && !PM){ view = 0; sel = null; }
     base = {};
     const src = {}; (SDOC.blocks || []).forEach(x => { if(x && x.id != null) src[String(x.id)] = x; });
     blocks.forEach(b => {
@@ -842,6 +1025,7 @@ async function poll(force, strict){
     });
     setLive();
     if(drag && drag.moved) pendingRender = true; else render(false);
+    maybeRoll();
   }catch(err){
     if(isCodeErr(err)){ toGate("That code is not right any more. Enter the new code."); if(strict) throw err; return; }
     fails++; if(fails >= 2 && liveState !== "offline"){ liveState = "offline"; refreshStatus(); } else setLive();
@@ -863,6 +1047,10 @@ function showGhost(t, b){
   const a = t.cells[d0], z = t.cells[d0 + s - 1];
   const g = el("div", "ghost"); g.style.left = (a.offsetLeft + 3) + "px"; g.style.width = (z.offsetLeft + z.offsetWidth - a.offsetLeft - 6) + "px";
   t.lane.append(g);
+}
+function wireRO(k, id){
+  k.addEventListener("click", () => { sel = (sel === id ? null : id); render(true); });
+  k.addEventListener("keydown", e => { if(e.key === "Escape"){ sel = null; render(false); } });
 }
 function wire(k, id){
   k.addEventListener("pointerdown", e => { if(e.button !== 0) return; drag = {id, x:e.clientX, y:e.clientY, moved:false}; try{ k.setPointerCapture(e.pointerId); }catch(_){} });
@@ -970,12 +1158,13 @@ function openBlockDlg(id){
   if(!M) return;
   const isNew = !id;
   const src = isNew ? null : byId(id); if(!isNew && !src) return;
-  const b = isNew ? {id:newId("b"), p:(sel && byId(sel)) ? byId(sel).p : 0, d:0, s:1, c:filter || (M.cats[0] ? M.cats[0][0] : ""), t:"", l:"", n:"", links:[]} : clone(src);
+  const mine = myLane(M);
+  const b = isNew ? {id:newId("b"), p:mine >= 0 ? mine : (view === 0 && sel && byId(sel)) ? byId(sel).p : 0, d:0, s:1, c:(view === 0 && filter) || (M.cats[0] ? M.cats[0][0] : ""), t:"", l:"", n:"", links:[]} : clone(src);
   const dlg = $("blockDlg"), {body, foot} = dlgShell($("blockForm"), isNew ? "New block" : "Edit block");
   const title = field(body, "Title", inp("text", b.l, "What is being done")); title.maxLength = 120;
   const g = el("div", "grid2"); body.append(g);
   const ticket = field(g, "Ticket", inp("text", b.t, "e.g. ABC-123 or ABC-12 / 13")); ticket.maxLength = 80;
-  const topic = field(g, "Topic", pick(M.cats.map(c => [c[0], c[1]]).concat([["__new", "New topic…"]]), b.c));
+  const topic = field(g, "Topic", pick([["", "No topic"]].concat(M.cats.map(c => [c[0], c[1]])).concat([["__new", "New topic…"]]), catOf(M, b.c) ? b.c : ""));
   const newTopic = field(g, "New topic name", inp("text", "", "e.g. Customer X")); newTopic.closest(".field").hidden = true; newTopic.maxLength = 40;
   topic.addEventListener("change", () => { newTopic.closest(".field").hidden = topic.value !== "__new"; if(topic.value === "__new") newTopic.focus(); });
   const person = field(g, "Person", pick(M.people.map((pp, i) => [i, pp[0]]), b.p));
@@ -1043,7 +1232,7 @@ function openBlockDlg(id){
     }, (isNew ? "added " : "edited ") + q(l));
     busy(save, false);
     if(e) return fail(e);
-    sel = b.id; dlg.close(); render(false);
+    view = 0; sel = b.id; dlg.close(); render(false);
   });
   dlg.showModal(); title.focus();
 }
@@ -1263,7 +1452,10 @@ function openUpload(preset, sourceLabel){
     if(!chosen) return;
     busy(go, true, "Loading…");
     try{
-      await rpc("plan_import", {code, newdoc:chosen, who, what:(preset ? "restored a past plan: " : "loaded a new plan: ") + (chosen.title || "Untitled") + " (" + chosen.start + ")"});
+      const nd = clone(chosen);
+      if(SDOC && !Array.isArray(nd.backlog) && Array.isArray(SDOC.backlog)) nd.backlog = SDOC.backlog;
+      if(SDOC && nd.carried == null && SDOC.carried) nd.carried = SDOC.carried;
+      await rpc("plan_import", {code, newdoc:nd, who, what:(preset ? "restored a past plan: " : "loaded a new plan: ") + (chosen.title || "Untitled") + " (" + chosen.start + ")"});
       sel = null; filter = null; view = 0; saveErr = ""; await poll(true); busy(go, false); dlg.close();
     }catch(e){ busy(go, false); const x = el("div", "box-err"); x.textContent = "Could not load the plan: " + e.message; out.prepend(x); }
   });
@@ -1282,7 +1474,7 @@ async function openPast(){
   try{ rows = await rpc("plan_archive_list", {code}); }catch(e){ list.innerHTML = ""; list.append(el("li", "err-text", "Could not load past plans: " + e.message)); return; }
   list.innerHTML = "";
   if(!rows || !rows.length){ list.append(el("li", "hint", "No past plans yet.")); return; }
-  const reasons = {replaced:"before a new plan was loaded", "before reset":"before a reset", snapshot:"snapshot"};
+  const reasons = {replaced:"before a new plan was loaded", "before reset":"before a reset", snapshot:"snapshot", "sprint ended":"when the sprint ended"};
   rows.forEach(r => {
     const li = el("li"); const info = el("div", "info");
     const D = validDate(r.start) ? workdays(r.start) : null;
@@ -1341,10 +1533,10 @@ function smallMsg(title, content){
   foot.append(el("span", "sep"), ok); dlg.showModal(); return {dlg, body, foot, ok};
 }
 function openName(){
-  const dlg = $("smallDlg"), {body, foot} = dlgShell($("smallForm"), "Your name");
-  const n = field(body, "Shown next to your changes in Recent changes", inp("text", who)); n.maxLength = 40;
+  const dlg = $("smallDlg"), {body, foot} = dlgShell($("smallForm"), "Switch user");
+  const n = field(body, "Shown next to your changes in Recent changes. New blocks go to this person's lane.", pick(USERS.map(u => [u, u]), who));
   const ok = el("button", "btn primary", "Save"); ok.type = "button";
-  ok.addEventListener("click", () => { const v = n.value.trim(); if(!v){ n.focus(); return; } who = v; store.set(NAME_KEY, v); dlg.close(); if(M) renderHeader(problems()); });
+  ok.addEventListener("click", () => { const v = asUser(n.value); if(!v){ n.focus(); return; } who = v; store.set(NAME_KEY, v); dlg.close(); if(M) render(false); });
   foot.append(el("span", "sep"), ok); dlg.showModal(); n.focus();
 }
 async function menuAct(act){
@@ -1397,6 +1589,8 @@ document.addEventListener("keydown", e => {
 });
 $("editPlanBtn").addEventListener("click", () => openPlanDlg());
 $("whoBtn").addEventListener("click", openName);
+$("whoBtn").title = "Switch user";
+$("nameIn").append(...[["", "Choose…"]].concat(USERS.map(u => [u, u])).map(([v, t]) => { const o = el("option", null, t); o.value = v; return o; }));
 
 let timer = null;
 function toGate(msg){
@@ -1416,7 +1610,9 @@ async function openApp(){
 document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && code) poll(); });
 $("gateForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const n = $("nameIn").value.trim(), v = $("codeIn").value.trim(); if(!n || !v) return;
+  const n = asUser($("nameIn").value), v = $("codeIn").value.trim();
+  if(!n){ $("gateErr").textContent = "Choose your user."; $("gateErr").hidden = false; $("nameIn").focus(); return; }
+  if(!v) return;
   try{ await rpc("plan_get", {code:v, since:-1}); }
   catch(err){ $("gateErr").textContent = isCodeErr(err) ? "That code is not right." : "Could not reach the plan database. Check your connection and try again."; $("gateErr").hidden = false; return; }
   code = v; who = n; store.set(CODE_KEY, v); store.set(NAME_KEY, n);
@@ -1426,7 +1622,7 @@ window.addEventListener("beforeunload", e => { if(Object.keys(pending).length){ 
 
 if(SUPABASE_URL.includes("YOUR-PROJECT") || SUPABASE_KEY.startsWith("YOUR-")){ $("setupMsg").hidden = false; }
 else if(code && who){ openApp(); }
-else { toGate(""); }
+else { toGate(code ? "Choose your user and enter the code again." : ""); }
 })();
 </script>
 </body>
